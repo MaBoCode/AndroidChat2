@@ -1,0 +1,26 @@
+<resources>
+
+    <style name="Theme.Apptemplatejava.DayNight" parent="Theme.Apptemplatejava.Dark" />
+
+    <style name="Theme.Apptemplatejava.Dark" parent="Theme.Apptemplatejava">
+
+        <item name="colorPrimary">@color/blue_200</item>
+        <item name="colorPrimaryVariant">@color/blue_300</item>
+        <item name="colorSecondary">@color/orange_300</item>
+        <item name="colorSecondaryVariant">@color/orange_300</item>
+
+        <item name="android:colorBackground">@color/black_900</item>
+        <item name="colorSurface">@color/black_800</item>
+        <item name="colorError">@color/red_200</item>
+
+        <item name="colorOnPrimary">@color/black_900</item>
+        <item name="colorOnSecondary">@color/black_900</item>
+        <item name="colorOnBackground">@color/white_50</item>
+        <item name="colorOnSurface">@color/white_50</item>
+        <item name="colorOnError">@color/black_900</item>
+
+        <item name="android:windowLightStatusBar">false</item>
+
+    </style>
+
+</resources>

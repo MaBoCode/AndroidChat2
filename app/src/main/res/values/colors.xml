@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="white_50">#ffffff</color>
+
+    <color name="light_grey">#FFD3D3D3</color>
+    <color name="dark_grey">#FF484848</color>
+
+    <color name="black_700">#262626</color>
+    <color name="black_800">#121212</color>
+    <color name="black_900">#000000</color>
+
+    <color name="blue_50">#e4f3ff</color>
+    <color name="blue_100">#bfdfff</color>
+    <color name="blue_200">#96ccff</color>
+    <color name="blue_300">#6db8ff</color>
+    <color name="blue_600">#448AFF</color>
+    <color name="blue_700">#4376ea</color>
+    <color name="blue_800">#4164d7</color>
+    <color name="blue_900">#3e42b7</color>
+
+
+    <color name="orange_300">#ffba44</color>
+    <color name="orange_400">#ffab0e</color>
+    <color name="orange_500">#ff9c00</color>
+
+    <color name="red_200">#ff94bb</color>
+    <color name="red_400">#ff4489</color>
+
+    <color name="white_50_alpha_060">#99ffffff</color>
+    <color name="white_50_alpha_020">#33ffffff</color>
+
+    <color name="blue_50_alpha_060">#99eef0f2</color>
+
+    <color name="black_900_alpha_020">#33000000</color>
+    <color name="black_900_alpha_087">#de000000</color>
+    <color name="black_900_alpha_060">#99000000</color>
+
+    <color name="nav_bar">@color/black_900_alpha_020</color>
+</resources>
