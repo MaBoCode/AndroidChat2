@@ -2,6 +2,7 @@ plugins {
     id 'com.android.application'
     id 'androidx.navigation.safeargs'
     id 'dagger.hilt.android.plugin'
+    id 'com.google.gms.google-services'
 }
 
 android {
@@ -9,7 +10,7 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
 
     defaultConfig {
-        applicationId "com.example.app_template_java"
+        applicationId "com.example.androidchat2"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode rootProject.ext.getVersionCode()
@@ -52,15 +53,21 @@ def androidxTestVersion = "1.1.2"
 def rxJavaVersion = "3.0.11"
 def rxAndroidVersion = "3.0.0"
 def glideVersion = "4.12.0"
-def picassoVersion = "2.8"
 
 dependencies {
 
+    // ChatKit
+    implementation 'com.github.stfalcon:chatkit:0.3.3'
+
+    // Firebase
+    implementation platform('com.google.firebase:firebase-bom:26.3.0')
+    implementation 'com.google.firebase:firebase-analytics'
+    implementation 'com.google.firebase:firebase-auth'
+    implementation 'com.google.firebase:firebase-database'
+    implementation 'com.google.firebase:firebase-storage'
+
     //Shimmer
     implementation 'com.facebook.shimmer:shimmer:0.5.0'
-
-    // Picasso
-    implementation "com.squareup.picasso:picasso:$picassoVersion"
 
     // Glide
     implementation "com.github.bumptech.glide:okhttp3-integration:$glideVersion"
@@ -98,6 +105,7 @@ dependencies {
     // UI libs
     implementation 'androidx.appcompat:appcompat:1.4.0-alpha01'
     implementation 'androidx.constraintlayout:constraintlayout:2.0.4'
+    implementation 'androidx.legacy:legacy-support-v4:1.0.0'
 
     // JUnit
     testImplementation "junit:junit:$junitVersion"

@@ -1,4 +1,17 @@
 <resources>
-    <string name="app_name">app-template-java</string>
+    <string name="app_name">androidchat2</string>
     <string name="splashscreen_title">SplashScreen</string>
+    <string name="email_hint">Email</string>
+    <string name="password_hint">Password</string>
+    <string name="log_in">Log In</string>
+    <string name="add_dialog_content_description">Add dialog</string>
+    <string name="msg_input_hint">Aa</string>
+    <string name="dialog_name_hint">Dialog name</string>
+    <string name="user_email_hint">User email</string>
+    <string name="start_dialog_txt">Start Dialog</string>
+    <string name="new_dialog_txt">New Dialog</string>
+    <string name="logout_btn_content_description">Logout</string>
+    <string name="my_dialogs_title">My Dialogs</string>
+    <string name="sign_up_title">Sign Up</string>
+    <string name="username_hint">Username</string>
 </resources>
