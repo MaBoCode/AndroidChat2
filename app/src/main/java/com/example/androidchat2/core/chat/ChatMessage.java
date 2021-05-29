@@ -3,19 +3,20 @@ package com.example.androidchat2.core.chat;
 import com.stfalcon.chatkit.commons.models.IMessage;
 import com.stfalcon.chatkit.commons.models.IUser;
 
+import java.io.Serializable;
 import java.util.Date;
 
-public class ChatMessage implements IMessage {
+public class ChatMessage implements IMessage, Serializable {
 
     private String id;
     private String text;
-    private IUser user;
+    private ChatUser user;
     private Date createdAt;
 
     public ChatMessage() {
     }
 
-    public ChatMessage(String id, String text, IUser user, Date createdAt) {
+    public ChatMessage(String id, String text, ChatUser user, Date createdAt) {
         this.id = id;
         this.text = text;
         this.user = user;
@@ -50,7 +51,7 @@ public class ChatMessage implements IMessage {
         this.text = text;
     }
 
-    public void setUser(IUser user) {
+    public void setUser(ChatUser user) {
         this.user = user;
     }
 

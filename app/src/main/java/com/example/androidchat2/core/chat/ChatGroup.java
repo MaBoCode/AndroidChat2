@@ -8,24 +8,29 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ChatDialog implements IDialog<ChatMessage>, Serializable {
+public class ChatGroup implements IDialog<ChatMessage>, Serializable {
 
     private String id;
     private String dialogName;
-    private ChatMessage lastMessage = new ChatMessage(
-            "welcome",
-            "Start a new conversation with...",
-            new ChatUser("welcome", "welcome"),
-            null);
+    private int unreadCount = 0;
+    private ChatMessage lastMsg;
 
     private List<ChatUser> users = new ArrayList<>();
 
-    public ChatDialog() {
+    public ChatGroup() {
     }
 
-    public ChatDialog(String id, String dialogName, List<ChatUser> users) {
+    public ChatGroup(String id, String dialogName, List<ChatUser> users) {
         this.id = id;
         this.dialogName = dialogName;
+        this.users = users;
+    }
+
+    public ChatGroup(String id, String dialogName, int unreadCount, ChatMessage lastMessage, List<ChatUser> users) {
+        this.id = id;
+        this.dialogName = dialogName;
+        this.unreadCount = unreadCount;
+        this.lastMsg = lastMessage;
         this.users = users;
     }
 
@@ -35,6 +40,10 @@ public class ChatDialog implements IDialog<ChatMessage>, Serializable {
 
     public void setDialogName(String dialogName) {
         this.dialogName = dialogName;
+    }
+
+    public void setUnreadCount(int unreadCount) {
+        this.unreadCount = unreadCount;
     }
 
     public void setUsers(List<ChatUser> users) {
@@ -61,21 +70,29 @@ public class ChatDialog implements IDialog<ChatMessage>, Serializable {
         return users;
     }
 
+    public ChatMessage getLastMsg() {
+        return lastMsg;
+    }
+
+    public void setLastMsg(ChatMessage lastMsg) {
+        this.lastMsg = lastMsg;
+    }
+
     @Exclude
     @Override
     public ChatMessage getLastMessage() {
-        return lastMessage;
+        return lastMsg;
     }
 
     @Exclude
     @Override
     public void setLastMessage(ChatMessage message) {
-        this.lastMessage = message;
+        this.lastMsg = message;
     }
 
     @Override
     public int getUnreadCount() {
-        return 0;
+        return unreadCount;
     }
 
     @Override

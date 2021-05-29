@@ -3,10 +3,11 @@ package com.example.androidchat2.core.chat;
 import com.google.firebase.auth.FirebaseUser;
 import com.stfalcon.chatkit.commons.models.IUser;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ChatUser implements IUser {
+public class ChatUser implements IUser, Serializable {
 
     private String id;
     private String name;

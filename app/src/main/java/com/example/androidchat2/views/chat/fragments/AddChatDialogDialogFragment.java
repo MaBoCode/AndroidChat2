@@ -10,17 +10,15 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.androidchat2.R;
-import com.example.androidchat2.core.chat.ChatDialog;
 import com.example.androidchat2.core.chat.ChatUser;
 import com.example.androidchat2.databinding.DlgAddChatDialogBinding;
 import com.example.androidchat2.injects.base.BaseDialogFragment;
-import com.example.androidchat2.utils.Logs;
 import com.example.androidchat2.views.MainActivityViewModel;
 import com.example.androidchat2.views.chat.viewmodels.AddChatDialogFragmentViewModel;
+import com.example.androidchat2.views.chat.viewmodels.ChatDialogsFragmentViewModel;
 import com.example.androidchat2.views.utils.rxfirebase.ErrorStatus;
 
 import org.androidannotations.annotations.Click;
@@ -41,6 +39,7 @@ public class AddChatDialogDialogFragment extends BaseDialogFragment {
     protected DlgAddChatDialogBinding binding;
 
     protected MainActivityViewModel mainViewModel;
+    protected ChatDialogsFragmentViewModel dialogsViewModel;
     protected AddChatDialogFragmentViewModel addDialogViewModel;
 
     @Nullable
@@ -115,38 +114,30 @@ public class AddChatDialogDialogFragment extends BaseDialogFragment {
     @Override
     public void initViewModels() {
         mainViewModel = new ViewModelProvider(requireActivity()).get(MainActivityViewModel.class);
-        addDialogViewModel = new ViewModelProvider(this).get(AddChatDialogFragmentViewModel.class);
+        addDialogViewModel = new ViewModelProvider(requireActivity()).get(AddChatDialogFragmentViewModel.class);
     }
 
     @Override
     public void subscribeObservers() {
-        addDialogViewModel.usersLiveData.observe(getViewLifecycleOwner(), new Observer<List<ChatUser>>() {
-            @Override
-            public void onChanged(List<ChatUser> chatUsers) {
-                setupUsersAdapter(chatUsers);
-            }
-        });
+        addDialogViewModel.usersLiveData.observe(getViewLifecycleOwner(), this::setupUsersAdapter);
 
-        addDialogViewModel.createdDialogLiveData.observe(getViewLifecycleOwner(), new Observer<ChatDialog>() {
-            @Override
-            public void onChanged(ChatDialog chatDialog) {
-                Logs.debug(this, chatDialog.toString());
+        addDialogViewModel.createdGroupLiveData.observe(getViewLifecycleOwner(), chatDialog -> mainViewModel.getCurrentChatUser(mainViewModel.getCurrentFirebaseUser()));
 
+        mainViewModel.currentChatUser.observe(getViewLifecycleOwner(), chatUser -> {
+            addDialogViewModel.setCurrentChatUser(chatUser);
+            if (addDialogViewModel.createdGroupLiveData.getValue() != null) {
                 dismissDialog();
             }
         });
 
-        addDialogViewModel.errorLiveData.observe(getViewLifecycleOwner(), new Observer<ErrorStatus>() {
-            @Override
-            public void onChanged(ErrorStatus errorStatus) {
-                displayError(errorStatus);
-            }
-        });
+        addDialogViewModel.errorLiveData.observe(getViewLifecycleOwner(), errorStatus -> displayError(errorStatus));
     }
 
     @Override
     public void unsubscribeObservers() {
-
+        mainViewModel.currentChatUser.removeObservers(getViewLifecycleOwner());
+        addDialogViewModel.errorLiveData.removeObservers(getViewLifecycleOwner());
+        addDialogViewModel.usersLiveData.removeObservers(getViewLifecycleOwner());
     }
 
     public void dismissDialog() {
@@ -154,5 +145,13 @@ public class AddChatDialogDialogFragment extends BaseDialogFragment {
         if (dialog != null) {
             dialog.dismiss();
         }
+    }
+
+    @Override
+    public void onDestroyView() {
+
+        unsubscribeObservers();
+
+        super.onDestroyView();
     }
 }

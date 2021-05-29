@@ -91,7 +91,11 @@
 
         <action
             android:id="@+id/to_chat_messages_fragment"
-            app:destination="@id/chatMessagesFragment" />
+            app:destination="@id/chatMessagesFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
 
         <action
             android:id="@+id/add_chat_dialog_action"
@@ -106,9 +110,9 @@
         tools:layout="@layout/frg_chat_messages">
 
         <argument
-            android:name="chatDialog"
+            android:name="chatGroup"
             app:nullable="false"
-            app:argType=".core.chat.ChatDialog" />
+            app:argType=".core.chat.ChatGroup" />
 
     </fragment>
 

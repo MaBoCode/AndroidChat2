@@ -1,22 +1,16 @@
 package com.example.androidchat2.views.chat.viewmodels;
 
-import androidx.annotation.NonNull;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.SavedStateHandle;
 
-import com.example.androidchat2.core.chat.ChatDialog;
+import com.example.androidchat2.core.chat.ChatGroup;
 import com.example.androidchat2.core.chat.ChatUser;
+import com.example.androidchat2.core.chat.ChatUserGroup;
 import com.example.androidchat2.core.firebase.ChatRealTimeDatabase;
 import com.example.androidchat2.injects.base.BaseViewModel;
-import com.example.androidchat2.utils.Logs;
 import com.example.androidchat2.views.utils.rxfirebase.ErrorStatus;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.ValueEventListener;
-
-import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,11 +25,13 @@ public class AddChatDialogFragmentViewModel extends BaseViewModel {
     @Inject
     protected ChatRealTimeDatabase chatDB;
 
+    protected ChatUser currentChatUser;
+
     protected MutableLiveData<List<ChatUser>> _usersLiveData = new MutableLiveData<>();
     public LiveData<List<ChatUser>> usersLiveData = _usersLiveData;
 
-    protected MutableLiveData<ChatDialog> _createdDialogLiveData = new MutableLiveData<>();
-    public LiveData<ChatDialog> createdDialogLiveData = _createdDialogLiveData;
+    protected MutableLiveData<ChatGroup> _createdGroupLiveData = new MutableLiveData<>();
+    public LiveData<ChatGroup> createdGroupLiveData = _createdGroupLiveData;
 
     @Inject
     public AddChatDialogFragmentViewModel(SavedStateHandle savedStateHandle) {
@@ -43,51 +39,48 @@ public class AddChatDialogFragmentViewModel extends BaseViewModel {
     }
 
     public void getUsers() {
-        chatDB.getUsersEndpoint().addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull @NotNull DataSnapshot snapshot) {
-                List<ChatUser> users = new ArrayList<>();
-                for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
-                    ChatUser user = dataSnapshot.getValue(ChatUser.class);
-                    users.add(user);
-                }
-                _usersLiveData.postValue(users);
-            }
-
-            @Override
-            public void onCancelled(@NonNull @NotNull DatabaseError error) {
-                Logs.error(this, error.getMessage());
-            }
-        });
+        chatDB.getUsersEndpoint()
+                .get()
+                .addOnSuccessListener(snapshot -> {
+                    List<ChatUser> users = new ArrayList<>();
+                    for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+                        ChatUser user = dataSnapshot.getValue(ChatUser.class);
+                        users.add(user);
+                    }
+                    _usersLiveData.postValue(users);
+                });
     }
 
     public void createNewDialog(String dialogName, List<ChatUser> users) {
-        String dialogId = chatDB.getNewKey(chatDB.getDialogsEndpoint());
+        String groupId = chatDB.getNewKey(chatDB.getGroupsEndpoint());
 
         ErrorStatus dialogErrorStatus = new ErrorStatus("Unable to create dialog.");
 
-        if (dialogId == null) {
+        if (groupId == null) {
             _errorLiveData.postValue(dialogErrorStatus);
             return;
         }
 
-        ChatDialog dialog = new ChatDialog(dialogId, dialogName, users);
+        ChatGroup group = new ChatGroup(groupId, dialogName, users);
+        List<ChatUserGroup> userGroups = new ArrayList<>();
+
+        for (ChatUser user : users) {
+            String userGroupId = chatDB.getNewKey(chatDB.getUserGroupsEndpoint());
+            ChatUserGroup userGroup = new ChatUserGroup(userGroupId, user.getId(), groupId);
+            userGroups.add(userGroup);
+        }
+
+        for (ChatUserGroup userGroup : userGroups) {
+            chatDB
+                    .insertValue(chatDB.getUserGroupsEndpoint(), userGroup.getId(), userGroup);
+        }
 
         chatDB
-                .insertValue(chatDB.getDialogsEndpoint(), dialogId, dialog)
-                .addOnFailureListener(e -> _errorLiveData.postValue(dialogErrorStatus))
-                .addOnSuccessListener(new OnSuccessListener<Void>() {
-                    @Override
-                    public void onSuccess(Void unused) {
-                        _createdDialogLiveData.postValue(dialog);
+                .insertValue(chatDB.getGroupsEndpoint(), groupId, group)
+                .addOnSuccessListener(unused -> _createdGroupLiveData.postValue(group));
+    }
 
-                        // Add dialog id to users in the dialog
-                        for (ChatUser user : users) {
-                            user.addDialogId(dialogId);
-                            chatDB.updateValue(chatDB.getUsersEndpoint(), user.getId(), user);
-                        }
-                    }
-                });
-
+    public void setCurrentChatUser(ChatUser currentChatUser) {
+        this.currentChatUser = currentChatUser;
     }
 }

@@ -7,17 +7,17 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 
 import com.example.androidchat2.R;
-import com.example.androidchat2.core.chat.ChatDialog;
+import com.example.androidchat2.core.chat.ChatGroup;
 import com.example.androidchat2.databinding.FrgChatDialogsBinding;
 import com.example.androidchat2.injects.base.BaseFragment;
 import com.example.androidchat2.views.MainActivityViewModel;
 import com.example.androidchat2.views.chat.utils.ChatImageLoader;
+import com.example.androidchat2.views.chat.viewmodels.AddChatDialogFragmentViewModel;
 import com.example.androidchat2.views.chat.viewmodels.ChatDialogsFragmentViewModel;
 import com.stfalcon.chatkit.dialogs.DialogsListAdapter;
 
@@ -31,14 +31,17 @@ import dagger.hilt.android.AndroidEntryPoint;
 
 @AndroidEntryPoint
 @EFragment
-public class ChatDialogsFragment extends BaseFragment implements DialogsListAdapter.OnDialogClickListener<ChatDialog> {
+public class ChatDialogsFragment extends BaseFragment implements DialogsListAdapter.OnDialogClickListener<ChatGroup> {
 
     protected FrgChatDialogsBinding binding;
 
     protected MainActivityViewModel mainViewModel;
     protected ChatDialogsFragmentViewModel dialogsViewModel;
+    protected AddChatDialogFragmentViewModel addDialogViewModel;
 
-    protected DialogsListAdapter<ChatDialog> dialogsAdapter;
+    protected DialogsListAdapter<ChatGroup> dialogsAdapter;
+
+    boolean isInit = true;
 
     @Nullable
     @org.jetbrains.annotations.Nullable
@@ -47,6 +50,8 @@ public class ChatDialogsFragment extends BaseFragment implements DialogsListAdap
         super.onCreateView(inflater, container, savedInstanceState);
 
         binding = FrgChatDialogsBinding.inflate(inflater, container, false);
+
+        dialogsViewModel.setCurrentChatUser(mainViewModel.currentChatUser.getValue());
 
         setupDialogsAdapter();
 
@@ -60,7 +65,7 @@ public class ChatDialogsFragment extends BaseFragment implements DialogsListAdap
     }
 
     @Override
-    public void onDialogClick(ChatDialog dialog) {
+    public void onDialogClick(ChatGroup dialog) {
         ChatDialogsFragment_Directions.ToChatMessagesFragment action = ChatDialogsFragment_Directions.toChatMessagesFragment(dialog);
         Navigation.findNavController(binding.getRoot()).navigate(action);
     }
@@ -77,35 +82,47 @@ public class ChatDialogsFragment extends BaseFragment implements DialogsListAdap
         Navigation.findNavController(binding.getRoot()).navigate(R.id.after_logout_action);
     }
 
-    @Override
-    public void onResume() {
-        super.onResume();
-
-        dialogsViewModel.getDialogs(mainViewModel.getCurrentFirebaseUser());
+    public void displayDialogs(List<ChatGroup> chatGroups) {
+        dialogsAdapter.setItems(chatGroups);
+        //dialogsAdapter.sortByLastMessageDate();
     }
 
-    public void displayDialogs(List<ChatDialog> chatDialogs) {
-        dialogsAdapter.setItems(chatDialogs);
+    @Override
+    public void onStart() {
+        super.onStart();
+
+        dialogsViewModel.getUserGroups();
     }
 
     @Override
     public void initViewModels() {
         mainViewModel = new ViewModelProvider(requireActivity()).get(MainActivityViewModel.class);
         dialogsViewModel = new ViewModelProvider(this).get(ChatDialogsFragmentViewModel.class);
+        addDialogViewModel = new ViewModelProvider(requireActivity()).get(AddChatDialogFragmentViewModel.class);
     }
 
     @Override
     public void subscribeObservers() {
-        dialogsViewModel.dialogsLiveData.observe(getViewLifecycleOwner(), new Observer<List<ChatDialog>>() {
-            @Override
-            public void onChanged(List<ChatDialog> chatDialogs) {
-                displayDialogs(chatDialogs);
+
+        mainViewModel.currentChatUser.observe(getViewLifecycleOwner(), chatUser -> {
+            dialogsViewModel.setCurrentChatUser(chatUser);
+        });
+
+        dialogsViewModel.userGroupsLiveData.observe(getViewLifecycleOwner(), chatUserGroups -> dialogsViewModel.getGroups());
+
+        dialogsViewModel.groupsLiveData.observe(getViewLifecycleOwner(), chatGroups -> {
+
+            if (isInit) {
+                dialogsViewModel.listenForGroupsUpdates();
+                isInit = false;
             }
+
+            displayDialogs(chatGroups);
         });
     }
 
     @Override
     public void unsubscribeObservers() {
-        dialogsViewModel.dialogsLiveData.removeObservers(getViewLifecycleOwner());
+        dialogsViewModel.groupsLiveData.removeObservers(getViewLifecycleOwner());
     }
 }

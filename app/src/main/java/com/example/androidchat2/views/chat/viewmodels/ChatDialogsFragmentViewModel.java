@@ -5,12 +5,11 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.SavedStateHandle;
 
-import com.example.androidchat2.core.chat.ChatDialog;
+import com.example.androidchat2.core.chat.ChatGroup;
 import com.example.androidchat2.core.chat.ChatUser;
+import com.example.androidchat2.core.chat.ChatUserGroup;
 import com.example.androidchat2.core.firebase.ChatRealTimeDatabase;
 import com.example.androidchat2.injects.base.BaseViewModel;
-import com.example.androidchat2.utils.Logs;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.ValueEventListener;
@@ -19,6 +18,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.inject.Inject;
 
@@ -30,52 +30,91 @@ public class ChatDialogsFragmentViewModel extends BaseViewModel {
     @Inject
     protected ChatRealTimeDatabase chatDB;
 
-    protected MutableLiveData<List<ChatDialog>> _dialogsLiveData = new MutableLiveData<>();
-    public LiveData<List<ChatDialog>> dialogsLiveData = _dialogsLiveData;
+    protected ChatUser currentChatUser;
+
+    protected MutableLiveData<List<ChatGroup>> _groupsLiveData = new MutableLiveData<>();
+    public LiveData<List<ChatGroup>> groupsLiveData = _groupsLiveData;
+
+    protected MutableLiveData<List<ChatUserGroup>> _userGroupsLiveData = new MutableLiveData<>();
+    public LiveData<List<ChatUserGroup>> userGroupsLiveData = _userGroupsLiveData;
 
     @Inject
     public ChatDialogsFragmentViewModel(SavedStateHandle savedStateHandle) {
         super(savedStateHandle);
     }
 
-    public void getDialogs(FirebaseUser currentUser) {
+    public void getUserGroups() {
         chatDB
-                .getUsersEndpoint()
-                .child(currentUser.getUid())
-                .addValueEventListener(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull @NotNull DataSnapshot snapshot) {
-                        ChatUser user = snapshot.getValue(ChatUser.class);
-
-                        if (user == null) {
-                            return;
-                        }
-
-                        List<ChatDialog> dialogs = new ArrayList<>();
-                        for (String dialogId : user.getDialogIds()) {
-                            chatDB
-                                    .getDialogsEndpoint()
-                                    .child(dialogId)
-                                    .addValueEventListener(new ValueEventListener() {
-                                        @Override
-                                        public void onDataChange(@NonNull @NotNull DataSnapshot snapshot) {
-                                            ChatDialog dialog = snapshot.getValue(ChatDialog.class);
-                                            dialogs.add(dialog);
-                                            _dialogsLiveData.postValue(dialogs);
-                                        }
-
-                                        @Override
-                                        public void onCancelled(@NonNull @NotNull DatabaseError error) {
-                                            Logs.debug(this, error.getMessage());
-                                        }
-                                    });
+                .getUserGroupsEndpoint()
+                .get()
+                .addOnSuccessListener(snapshot -> {
+                    List<ChatUserGroup> groups = new ArrayList<>();
+                    for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+                        ChatUserGroup group = dataSnapshot.getValue(ChatUserGroup.class);
+                        if (group.getUserId().equals(currentChatUser.getId())) {
+                            groups.add(group);
                         }
                     }
-
-                    @Override
-                    public void onCancelled(@NonNull @NotNull DatabaseError error) {
-                        Logs.debug(this, error.getMessage());
-                    }
+                    _userGroupsLiveData.postValue(groups);
                 });
+    }
+
+    public void getGroups() {
+        chatDB
+                .getGroupsEndpoint()
+                .get()
+                .addOnSuccessListener(snapshot -> {
+                    List<ChatGroup> groups = new ArrayList<>();
+
+                    List<ChatUserGroup> userGroups = userGroupsLiveData.getValue();
+                    for (ChatUserGroup userGroup : userGroups) {
+                        DataSnapshot dataSnapshot = snapshot.child(userGroup.getGroupId());
+                        ChatGroup group = dataSnapshot.getValue(ChatGroup.class);
+                        groups.add(group);
+                    }
+                    _groupsLiveData.postValue(groups);
+                });
+    }
+
+    public void listenForGroupsUpdates() {
+        List<ChatGroup> groups = groupsLiveData.getValue();
+        List<ChatGroup> copy = new ArrayList<>(groups);
+
+        AtomicInteger i = new AtomicInteger(0);
+        for (ChatGroup group : copy) {
+            chatDB
+                    .getGroupsEndpoint()
+                    .child(group.getId())
+                    .addValueEventListener(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull @NotNull DataSnapshot snapshot) {
+                            ChatGroup chatGroup = snapshot.getValue(ChatGroup.class);
+
+                            if (i.get() < groups.size()) {
+                                groups.set(i.get(), chatGroup);
+                                _groupsLiveData.postValue(groups);
+                                i.incrementAndGet();
+                            }
+                        }
+
+                        @Override
+                        public void onCancelled(@NonNull @NotNull DatabaseError error) {
+
+                        }
+                    });
+        }
+    }
+
+    public List<ChatGroup> getDialogChildren(DataSnapshot snapshot) {
+        List<ChatGroup> dialogs = new ArrayList<>();
+        for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+            ChatGroup dialog = dataSnapshot.getValue(ChatGroup.class);
+            dialogs.add(dialog);
+        }
+        return dialogs;
+    }
+
+    public void setCurrentChatUser(ChatUser currentChatUser) {
+        this.currentChatUser = currentChatUser;
     }
 }

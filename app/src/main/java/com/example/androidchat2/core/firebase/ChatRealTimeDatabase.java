@@ -30,11 +30,19 @@ public class ChatRealTimeDatabase extends BaseRealTimeDatabase {
         return rootReference.child("users");
     }
 
-    public DatabaseReference getDialogsEndpoint() {
-        return rootReference.child("dialogs");
+    public DatabaseReference getUserGroupsEndpoint() {
+        return rootReference.child("user_groups");
     }
 
-    public DatabaseReference getMessagesEndpoint(String dialogId) {
-        return getDialogsEndpoint().child(dialogId).child("messages");
+    public DatabaseReference getGroupsEndpoint() {
+        return rootReference.child("groups");
+    }
+
+    public DatabaseReference getMessagesEndpoint() {
+        return rootReference.child("messages");
+    }
+
+    public DatabaseReference getMessageRecipientsEndpoint() {
+        return rootReference.child("message_recipients");
     }
 }
