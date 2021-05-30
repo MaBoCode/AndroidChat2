@@ -8,13 +8,11 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 
 import com.example.androidchat2.R;
-import com.example.androidchat2.core.chat.ChatUser;
 import com.example.androidchat2.databinding.FrgLoginBinding;
 import com.example.androidchat2.injects.base.BaseFragment;
 import com.example.androidchat2.views.MainActivityViewModel;
@@ -79,12 +77,7 @@ public class LoginFragment extends BaseFragment {
             mainViewModel.getCurrentChatUser(firebaseUser);
         });
 
-        mainViewModel.currentChatUser.observe(getViewLifecycleOwner(), new Observer<ChatUser>() {
-            @Override
-            public void onChanged(ChatUser chatUser) {
-                onUserLoggedIn();
-            }
-        });
+        mainViewModel.currentChatUser.observe(getViewLifecycleOwner(), chatUser -> onUserLoggedIn());
 
         loginViewModel.errorLiveData.observe(
                 getViewLifecycleOwner(),

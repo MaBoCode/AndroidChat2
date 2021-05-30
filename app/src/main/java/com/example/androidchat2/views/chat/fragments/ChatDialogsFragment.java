@@ -7,6 +7,7 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
@@ -15,6 +16,7 @@ import com.example.androidchat2.R;
 import com.example.androidchat2.core.chat.ChatGroup;
 import com.example.androidchat2.databinding.FrgChatDialogsBinding;
 import com.example.androidchat2.injects.base.BaseFragment;
+import com.example.androidchat2.utils.Logs;
 import com.example.androidchat2.views.MainActivityViewModel;
 import com.example.androidchat2.views.chat.utils.ChatImageLoader;
 import com.example.androidchat2.views.chat.viewmodels.AddChatDialogFragmentViewModel;
@@ -78,8 +80,10 @@ public class ChatDialogsFragment extends BaseFragment implements DialogsListAdap
 
     @Click
     public void logoutBtnClicked() {
-        mainViewModel.logoutUser();
-        Navigation.findNavController(binding.getRoot()).navigate(R.id.after_logout_action);
+        Logs.debug(this, "logout");
+        //mainViewModel.logoutUser();
+        //Navigation.findNavController(binding.getRoot()).popBackStack();
+        Navigation.findNavController(binding.getRoot()).navigateUp();
     }
 
     public void displayDialogs(List<ChatGroup> chatGroups) {
@@ -118,6 +122,13 @@ public class ChatDialogsFragment extends BaseFragment implements DialogsListAdap
             }
 
             displayDialogs(chatGroups);
+        });
+
+        addDialogViewModel.createdGroupLiveData.observe(getViewLifecycleOwner(), new Observer<ChatGroup>() {
+            @Override
+            public void onChanged(ChatGroup chatGroup) {
+                dialogsAdapter.addItem(chatGroup);
+            }
         });
     }
 

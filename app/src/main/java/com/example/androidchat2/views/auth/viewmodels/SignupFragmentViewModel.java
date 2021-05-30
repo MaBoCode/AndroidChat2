@@ -11,6 +11,7 @@ import com.example.androidchat2.views.utils.rxfirebase.ErrorStatus;
 import com.example.androidchat2.views.utils.rxfirebase.RxFirebaseAuth;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.UserProfileChangeRequest;
 
 import javax.inject.Inject;
 
@@ -37,8 +38,17 @@ public class SignupFragmentViewModel extends BaseViewModel {
                 .doOnSubscribe(loadingStatusConsumer)
                 .doFinally(notLoadingStatusAction)
                 .subscribe(authResult -> {
-                    addUserToRealtimeDB(authResult.getUser());
+                    updateUserProfile(authResult.getUser(), username);
                 }, errorStatusConsumer);
+    }
+
+    public void updateUserProfile(FirebaseUser currentUser, String username) {
+        UserProfileChangeRequest profileChangeRequest = new UserProfileChangeRequest.Builder()
+                .setDisplayName(username)
+                .build();
+        currentUser
+                .updateProfile(profileChangeRequest)
+                .addOnSuccessListener(unused -> addUserToRealtimeDB(currentUser));
     }
 
     public void addUserToRealtimeDB(FirebaseUser firebaseUser) {

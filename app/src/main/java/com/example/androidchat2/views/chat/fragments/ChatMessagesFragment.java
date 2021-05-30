@@ -1,6 +1,8 @@
 package com.example.androidchat2.views.chat.fragments;
 
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,6 +19,7 @@ import com.example.androidchat2.core.chat.ChatMessage;
 import com.example.androidchat2.core.chat.ChatUser;
 import com.example.androidchat2.databinding.FrgChatMessagesBinding;
 import com.example.androidchat2.injects.base.BaseFragment;
+import com.example.androidchat2.utils.Logs;
 import com.example.androidchat2.views.MainActivityViewModel;
 import com.example.androidchat2.views.chat.utils.ChatImageLoader;
 import com.example.androidchat2.views.chat.viewmodels.ChatMessagesFragmentViewModel;
@@ -24,7 +27,6 @@ import com.example.androidchat2.views.utils.ViewUtils;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.stfalcon.chatkit.commons.models.IUser;
 import com.stfalcon.chatkit.messages.MessageHolders;
-import com.stfalcon.chatkit.messages.MessageInput;
 import com.stfalcon.chatkit.messages.MessagesListAdapter;
 
 import org.androidannotations.annotations.EFragment;
@@ -36,7 +38,7 @@ import dagger.hilt.android.AndroidEntryPoint;
 
 @AndroidEntryPoint
 @EFragment
-public class ChatMessagesFragment extends BaseFragment implements MessageInput.InputListener {
+public class ChatMessagesFragment extends BaseFragment {
 
     protected FrgChatMessagesBinding binding;
 
@@ -44,6 +46,50 @@ public class ChatMessagesFragment extends BaseFragment implements MessageInput.I
     protected ChatMessagesFragmentViewModel messagesViewModel;
 
     protected MessagesListAdapter<ChatMessage> messagesListAdapter;
+
+    protected View.OnClickListener onSendMessageClick = new View.OnClickListener() {
+        @Override
+        public void onClick(View view) {
+            String input = binding.msgInput.getEditText().getText().toString();
+            if (!input.isEmpty()) {
+                messagesViewModel.sendMessage(input);
+                binding.msgInput.getEditText().getText().clear();
+            }
+        }
+    };
+
+    protected View.OnFocusChangeListener onEditTextFocusChange = new View.OnFocusChangeListener() {
+        @Override
+        public void onFocusChange(View view, boolean hasFocus) {
+            String hint;
+            if (hasFocus) {
+                hint = getString(R.string.msg_input_hint_focused);
+                binding.msgInput.getEditText().setHint(hint);
+            } else {
+                hint = getString(R.string.msg_input_hint_not_focused);
+                binding.msgInput.getEditText().setHint(hint);
+            }
+        }
+    };
+
+    protected TextWatcher msgInputWatcher = new TextWatcher() {
+        @Override
+        public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+        }
+
+        @Override
+        public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+            binding.msgInput.setEndIconActivated(true);
+        }
+
+        @Override
+        public void afterTextChanged(Editable editable) {
+            if (editable.toString().isEmpty()) {
+                binding.msgInput.setEndIconActivated(false);
+            }
+        }
+    };
 
     @Nullable
     @org.jetbrains.annotations.Nullable
@@ -53,7 +99,17 @@ public class ChatMessagesFragment extends BaseFragment implements MessageInput.I
 
         binding = FrgChatMessagesBinding.inflate(inflater, container, false);
 
-        binding.msgInput.setInputListener(this);
+        binding.msgInput.setEndIconActivated(false);
+        binding.msgInput.setEndIconOnClickListener(onSendMessageClick);
+        binding.msgInput.getEditText().setOnFocusChangeListener(onEditTextFocusChange);
+        binding.msgInput.getEditText().addTextChangedListener(msgInputWatcher);
+
+        binding.chatMessagesLst.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Logs.debug(this, "click");
+            }
+        });
 
         ChatGroup chatGroup = ChatMessagesFragment_Args.fromBundle(getArguments()).getChatGroup();
         messagesViewModel.setCurrentGroup(chatGroup);
@@ -116,16 +172,6 @@ public class ChatMessagesFragment extends BaseFragment implements MessageInput.I
             ChatMessage lastMessage = messages.get(messages.size() - 1);
             messagesListAdapter.addToStart(lastMessage, true);
         }
-    }
-
-    @Override
-    public boolean onSubmit(CharSequence input) {
-
-        if (!input.toString().isEmpty()) {
-            messagesViewModel.sendMessage(input.toString());
-        }
-
-        return true;
     }
 
     @Override

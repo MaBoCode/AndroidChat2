@@ -20,7 +20,6 @@
         <item name="colorOnError">@color/black_900</item>
 
         <item name="android:windowLightStatusBar">false</item>
-
     </style>
 
 </resources>

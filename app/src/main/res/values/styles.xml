@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="Widget.Apptemplatejava.AppBarLayout" parent="Widget.MaterialComponents.AppBarLayout.Primary">
+        <item name="android:background">?android:colorBackground</item>
+        <item name="android:elevation">4dp</item>
+    </style>
+</resources>

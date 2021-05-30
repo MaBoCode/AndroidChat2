@@ -12,8 +12,8 @@
 
         <de.hdodenhof.circleimageview.CircleImageView
             android:id="@id/dialogAvatar"
-            android:layout_width="@dimen/dialog_avatar_width"
-            android:layout_height="@dimen/dialog_avatar_height"
+            android:layout_width="38dp"
+            android:layout_height="38dp"
             android:layout_margin="16dp"
             android:src="@drawable/ic_launcher_background" />
 
@@ -21,35 +21,23 @@
             android:id="@id/dialogName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="19dp"
+            android:layout_marginTop="20dp"
             android:layout_marginEnd="16dp"
-            android:layout_toStartOf="@id/dialogDate"
             android:layout_toEndOf="@id/dialogAvatar"
             android:text="Dialog name"
-            android:textAppearance="@style/TextAppearance.Apptemplatejava.Subtitle1"
+            android:textAppearance="@style/TextAppearance.Apptemplatejava.Subtitle2"
+            android:textStyle="bold"
             android:ellipsize="end"
             android:includeFontPadding="false"
-            android:maxLines="1" />
-
-        <TextView
-            android:id="@id/dialogDate"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:layout_marginEnd="16dp"
-            android:layout_alignParentEnd="true"
-            android:text="00/00/00"
-            android:textAppearance="@style/TextAppearance.Apptemplatejava.Caption"
-            android:ellipsize="end"
             android:maxLines="1" />
 
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_below="@id/dialogName"
-            android:layout_marginTop="7dp"
+            android:layout_marginTop="4dp"
             android:layout_marginEnd="16dp"
-            android:layout_toStartOf="@+id/dialogUnreadBubble"
+            android:padding="0dp"
             android:layout_toEndOf="@id/dialogAvatar">
 
             <com.stfalcon.chatkit.utils.ShapeImageView
@@ -57,19 +45,31 @@
                 android:layout_width="24dp"
                 android:layout_height="24dp"
                 android:layout_marginEnd="7dp"
+                android:visibility="gone"
                 android:src="@drawable/ic_launcher_background" />
 
 
             <TextView
                 android:id="@id/dialogLastMessage"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_centerVertical="true"
-                android:layout_toEndOf="@id/dialogLastMessageUserAvatar"
                 android:text="Start a new conversation with..."
-                android:textAppearance="@style/TextAppearance.Apptemplatejava.Body2"
+                android:textAppearance="@style/TextAppearance.Apptemplatejava.Caption"
+                android:layout_marginEnd="12dp"
                 android:ellipsize="end"
                 android:gravity="top"
+                android:maxLines="1" />
+
+            <TextView
+                android:id="@id/dialogDate"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_toEndOf="@id/dialogLastMessage"
+                android:text="19:00"
+                android:textAppearance="@style/TextAppearance.Apptemplatejava.Caption"
+                android:ellipsize="end"
+                android:layout_centerVertical="true"
                 android:maxLines="1" />
 
         </RelativeLayout>
@@ -79,9 +79,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentEnd="true"
-            android:layout_below="@id/dialogDate"
-            android:layout_marginTop="10dp"
-            android:layout_marginEnd="24dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginEnd="16dp"
             android:text="1"
             android:textAppearance="@style/TextAppearance.Apptemplatejava.Caption"
             android:textColor="@color/black_900"
@@ -95,7 +94,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
-            android:layout_marginTop="16dp">
+            android:layout_marginTop="16dp"
+            android:visibility="gone">
 
             <View
                 android:id="@id/dialogDivider"

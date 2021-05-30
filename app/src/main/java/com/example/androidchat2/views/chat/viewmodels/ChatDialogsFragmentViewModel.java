@@ -51,10 +51,16 @@ public class ChatDialogsFragmentViewModel extends BaseViewModel {
                     List<ChatUserGroup> groups = new ArrayList<>();
                     for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
                         ChatUserGroup group = dataSnapshot.getValue(ChatUserGroup.class);
+
                         if (group.getUserId().equals(currentChatUser.getId())) {
                             groups.add(group);
                         }
                     }
+
+                    if (groups.isEmpty()) {
+                        return;
+                    }
+
                     _userGroupsLiveData.postValue(groups);
                 });
     }

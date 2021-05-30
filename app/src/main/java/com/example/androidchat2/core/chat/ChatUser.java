@@ -11,6 +11,7 @@ public class ChatUser implements IUser, Serializable {
 
     private String id;
     private String name;
+    private String email;
     private List<String> dialogIds = new ArrayList<>();
 
     public ChatUser() {
@@ -23,7 +24,8 @@ public class ChatUser implements IUser, Serializable {
 
     public ChatUser(FirebaseUser firebaseUser) {
         this.id = firebaseUser.getUid();
-        this.name = firebaseUser.getEmail();
+        this.name = firebaseUser.getDisplayName();
+        this.email = firebaseUser.getEmail();
     }
 
     public boolean addDialogId(String dialogId) {
@@ -38,6 +40,10 @@ public class ChatUser implements IUser, Serializable {
         this.name = name;
     }
 
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
     @Override
     public String getId() {
         return id;
@@ -46,6 +52,10 @@ public class ChatUser implements IUser, Serializable {
     @Override
     public String getName() {
         return name;
+    }
+
+    public String getEmail() {
+        return email;
     }
 
     @Override

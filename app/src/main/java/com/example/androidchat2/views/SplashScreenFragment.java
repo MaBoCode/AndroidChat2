@@ -8,12 +8,10 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.Navigation;
 
 import com.example.androidchat2.R;
-import com.example.androidchat2.core.chat.ChatUser;
 import com.example.androidchat2.databinding.FrgSplashscreenBinding;
 import com.example.androidchat2.injects.base.BaseFragment;
 import com.google.firebase.auth.FirebaseAuth;
@@ -45,7 +43,7 @@ public class SplashScreenFragment extends BaseFragment {
     public void onStart() {
         super.onStart();
 
-        new Handler().postDelayed(this::handleUserAuth, 300);
+        new Handler().postDelayed(this::handleUserAuth, 150);
     }
 
     public void handleUserAuth() {
@@ -66,12 +64,7 @@ public class SplashScreenFragment extends BaseFragment {
 
     @Override
     public void subscribeObservers() {
-        mainViewModel.currentChatUser.observe(getViewLifecycleOwner(), new Observer<ChatUser>() {
-            @Override
-            public void onChanged(ChatUser chatUser) {
-                Navigation.findNavController(binding.getRoot()).navigate(R.id.login_to_chat_dialogs_fragment);
-            }
-        });
+        mainViewModel.currentChatUser.observe(getViewLifecycleOwner(), chatUser -> Navigation.findNavController(binding.getRoot()).navigate(R.id.splash_to_chat_dialogs_fragment));
     }
 
     @Override

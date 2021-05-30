@@ -5,36 +5,80 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:animateLayoutChanges="true">
 
-    <com.google.android.material.appbar.MaterialToolbar
-        android:id="@+id/tlbMessages"
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/appBarLyMessages"
         android:layout_width="0dp"
-        android:layout_height="?attr/actionBarSize"
+        android:layout_height="wrap_content"
+        style="@style/Widget.Apptemplatejava.AppBarLayout"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/tlbMessages"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize" />
+
+    </com.google.android.material.appbar.AppBarLayout>
 
     <com.stfalcon.chatkit.messages.MessagesList
         android:id="@+id/chatMessagesLst"
         android:layout_width="0dp"
         android:layout_height="0dp"
+        android:paddingBottom="12dp"
+        app:incomingBubblePaddingTop="@dimen/padding_vertical_chat_bubble"
+        app:incomingBubblePaddingLeft="@dimen/padding_horizontal_chat_bubble"
+        app:incomingBubblePaddingRight="@dimen/padding_horizontal_chat_bubble"
+        app:incomingBubblePaddingBottom="@dimen/padding_vertical_chat_bubble"
+        app:outcomingBubblePaddingTop="@dimen/padding_vertical_chat_bubble"
+        app:outcomingBubblePaddingLeft="@dimen/padding_horizontal_chat_bubble"
+        app:outcomingBubblePaddingRight="@dimen/padding_horizontal_chat_bubble"
+        app:outcomingBubblePaddingBottom="@dimen/padding_vertical_chat_bubble"
+        app:incomingTextSize="15sp"
+        app:outcomingTextSize="15sp"
+        app:outcomingTextColor="?android:colorBackground"
+        app:incomingAvatarHeight="28dp"
+        app:incomingAvatarWidth="28dp"
         app:incomingBubbleDrawable="@drawable/bg_chat_incoming_bubble_default"
         app:outcomingBubbleDrawable="@drawable/bg_chat_outcoming_bubble_default"
         android:overScrollMode="never"
-        app:layout_constraintTop_toBottomOf="@id/tlbMessages"
+        app:layout_constraintTop_toBottomOf="@id/appBarLyMessages"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toTopOf="@id/msgInput" />
 
-    <com.stfalcon.chatkit.messages.MessageInput
+    <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/msgInput"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        app:inputHint="@string/msg_input_hint"
-        app:inputBackground="@drawable/bg_chat_msg_input"
-        app:inputButtonIcon="@drawable/ic_send"
-        app:inputButtonBackground="@android:color/transparent"
+        android:paddingTop="0dp"
+        android:paddingBottom="8dp"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
+        app:expandedHintEnabled="false"
+        app:hintEnabled="false"
+        app:errorEnabled="false"
+        app:shapeAppearance="@null"
+        app:boxBackgroundMode="none"
+        app:boxStrokeWidth="0dp"
+        app:boxStrokeWidthFocused="0dp"
+        app:boxCollapsedPaddingTop="0dp"
+        app:endIconMode="custom"
+        app:endIconDrawable="@drawable/ic_send_default"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent" />
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="4dp"
+            android:paddingBottom="4dp"
+            android:textAppearance="@style/TextAppearance.Apptemplatejava.Body1"
+            android:inputType="textCapSentences|textAutoComplete|textAutoCorrect|textLongMessage|textMultiLine|textShortMessage"
+            android:hint="@string/msg_input_hint_not_focused"
+            android:background="@drawable/bg_chat_msg_input" />
+
+    </com.google.android.material.textfield.TextInputLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

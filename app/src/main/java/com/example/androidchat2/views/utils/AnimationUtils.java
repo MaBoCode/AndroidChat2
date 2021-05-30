@@ -29,6 +29,9 @@ public class AnimationUtils {
 
         private TimeInterpolator interpolator = null;
 
+        private int widthBegin = 0;
+        private int widthEnd = 0;
+
         private float translationYBegin = 0f;
         private float translationYEnd = 0f;
 
@@ -76,6 +79,16 @@ public class AnimationUtils {
 
         public Builder setInterpolator(TimeInterpolator interpolator) {
             this.interpolator = interpolator;
+            return this;
+        }
+
+        public Builder setWidthBegin(int widthBegin) {
+            this.widthBegin = widthBegin;
+            return this;
+        }
+
+        public Builder setWidthEnd(int widthEnd) {
+            this.widthEnd = widthEnd;
             return this;
         }
 
@@ -153,6 +166,12 @@ public class AnimationUtils {
                     scaleY = ObjectAnimator.ofFloat(view, "scaleY", begin, end);
                     animators.add(scaleX);
                     animators.add(scaleY);
+                }
+
+                if (widthBegin != 0f || widthEnd != 0f) {
+                    //ViewGroup.LayoutParams paramsBegin = new ViewGroup.LayoutParams();
+                    //ObjectAnimator width = ObjectAnimator.ofObject(view, "layoutParams", null, null);
+                    //animators.add(width);
                 }
 
                 if (translationYBegin != 0f || translationYEnd != 0f) {

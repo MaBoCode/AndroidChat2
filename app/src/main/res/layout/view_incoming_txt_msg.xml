@@ -1,18 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="1dp"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_marginBottom="2dp"
     android:layout_marginLeft="16dp"
     android:layout_marginRight="16dp"
-    android:layout_marginTop="1dp">
+    android:layout_marginTop="2dp">
 
     <de.hdodenhof.circleimageview.CircleImageView
         android:id="@id/messageUserAvatar"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:layout_marginEnd="8dp"
-        android:src="@drawable/ic_launcher_background" />
+        android:layout_width="28dp"
+        android:layout_height="28dp"
+        android:src="@drawable/ic_launcher_background"
+        android:scaleType="centerCrop"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintBottom_toBottomOf="@id/bubble" />
 
     <!--this view is needed for custom holder-->
     <ImageView
@@ -21,25 +24,27 @@
         android:layout_height="12dp"
         android:layout_alignTop="@id/messageUserAvatar"
         android:layout_marginEnd="5dp"
-        android:src="@drawable/ic_launcher_foreground" />
+        android:src="@drawable/ic_launcher_foreground"
+        android:visibility="gone" />
 
     <LinearLayout
         android:id="@id/bubble"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="30dp"
-        android:layout_toEndOf="@id/messageUserAvatar"
-        android:orientation="vertical"
-        android:background="@drawable/bg_chat_incoming_bubble_default">
+        android:layout_marginStart="8dp"
+        android:background="@drawable/bg_chat_incoming_bubble_default"
+        app:layout_constraintStart_toEndOf="@id/messageUserAvatar"
+        app:layout_constraintBottom_toBottomOf="@id/messageUserAvatar"
+        app:layout_constraintWidth_percent="0.6"
+        app:layout_constraintWidth_max="wrap">
 
         <TextView
             android:id="@id/messageText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="4dp"
-            android:layout_marginStart="8dp"
-            android:text="Hello world"
-            android:textAppearance="@style/TextAppearance.Apptemplatejava.Body2" />
+            android:text="Hello World"
+            android:textAppearance="@style/TextAppearance.Apptemplatejava.Caption"
+            android:textIsSelectable="true" />
 
     </LinearLayout>
 
@@ -47,11 +52,9 @@
         android:id="@id/messageTime"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignStart="@id/bubble"
-        android:layout_below="@id/bubble"
         android:layout_marginStart="16dp"
         android:text="00:00"
-        android:textAppearance="@style/TextAppearance.Apptemplatejava.Caption"
+        android:textAppearance="@style/TextAppearance.Apptemplatejava.Overline"
         android:visibility="gone" />
 
-</RelativeLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

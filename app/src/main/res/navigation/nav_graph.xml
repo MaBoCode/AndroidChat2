@@ -5,12 +5,6 @@
     android:id="@+id/nav_graph"
     app:startDestination="@id/splashScreenFragment">
 
-    <action
-        android:id="@+id/after_logout_action"
-        app:destination="@id/loginFragment"
-        app:popUpTo="@id/nav_graph"
-        app:launchSingleTop="true" />
-
     <fragment
         android:id="@+id/splashScreenFragment"
         android:name="com.example.androidchat2.views.SplashScreenFragment"
@@ -26,7 +20,7 @@
             app:popUpToInclusive="true" />
 
         <action
-            android:id="@+id/login_to_chat_dialogs_fragment"
+            android:id="@+id/splash_to_chat_dialogs_fragment"
             app:destination="@id/chatDialogsFragment"
             app:enterAnim="@android:anim/fade_in"
             app:exitAnim="@android:anim/fade_out"
@@ -100,6 +94,12 @@
         <action
             android:id="@+id/add_chat_dialog_action"
             app:destination="@id/addDialogFragment" />
+
+        <action
+            android:id="@+id/after_logout_action"
+            app:destination="@id/loginFragment"
+            app:popUpTo="@id/chatDialogsFragment"
+            app:popUpToInclusive="true" />
 
     </fragment>
 
