@@ -1,5 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <dimen name="chat_bubble_border_radius_straight">6dp</dimen>
-    <dimen name="chat_bubble_border_radius_round">18dp</dimen>
-</resources>

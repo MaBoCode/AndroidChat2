@@ -17,4 +17,9 @@
     <!--Custom view themes/styles-->
     <attr name="bottomNavigationDrawerStyle" format="reference" />
     <attr name="bottomNavigationDrawerNavigationViewTheme" format="reference" />
+
+    <attr name="incomingBubbleColorSurface" format="color" />
+    <attr name="outcomingBubbleColorSurface" format="color" />
+
+    <attr name="messageInputColorSurface" format="color" />
 </resources>

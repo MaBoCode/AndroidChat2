@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <dimen name="padding_vertical_chat_bubble">8dp</dimen>
+    <dimen name="padding_vertical_chat_bubble">10dp</dimen>
     <dimen name="padding_horizontal_chat_bubble">10dp</dimen>
     <dimen name="msg_edit_text_width">180dp</dimen>
+    <dimen name="chat_bubble_border_radius_straight">6dp</dimen>
+    <dimen name="chat_bubble_border_radius_round">18dp</dimen>
 </resources>
