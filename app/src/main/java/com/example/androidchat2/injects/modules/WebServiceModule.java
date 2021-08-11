@@ -1,7 +1,6 @@
 package com.example.androidchat2.injects.modules;
 
 import com.example.androidchat2.core.photo.PhotoService;
-import com.example.androidchat2.core.user.UserService;
 
 import javax.inject.Singleton;
 
@@ -35,12 +34,6 @@ public class WebServiceModule {
                 .addCallAdapterFactory(RxJava3CallAdapterFactory.create())
                 .client(okHttpClient)
                 .build();
-    }
-
-    @Provides
-    @Singleton
-    public UserService provideUserService(Retrofit retrofit) {
-        return retrofit.create(UserService.class);
     }
 
     @Provides
