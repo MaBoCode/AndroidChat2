@@ -6,6 +6,7 @@
 
         <item name="colorPrimary">@color/blue_200</item>
         <item name="colorPrimaryVariant">@color/blue_300</item>
+        <item name="colorPrimaryDark">@color/blue_600</item>
         <item name="colorSecondary">@color/orange_300</item>
         <item name="colorSecondaryVariant">@color/orange_300</item>
 
@@ -18,6 +19,11 @@
         <item name="colorOnBackground">@color/white_50</item>
         <item name="colorOnSurface">@color/white_50</item>
         <item name="colorOnError">@color/black_900</item>
+
+        <item name="incomingBubbleColorSurface">@color/black_800</item>
+        <item name="outcomingBubbleColorSurface">?attr/colorPrimaryDark</item>
+
+        <item name="messageInputColorSurface">@color/black_800</item>
 
         <item name="android:windowLightStatusBar">false</item>
     </style>

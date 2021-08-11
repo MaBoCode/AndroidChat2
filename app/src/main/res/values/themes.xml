@@ -19,6 +19,11 @@
         <item name="colorOnSurface">@color/black_900</item>
         <item name="colorOnError">@color/black_900</item>
 
+        <item name="incomingBubbleColorSurface">@color/light_grey_200</item>
+        <item name="outcomingBubbleColorSurface">?attr/colorPrimary</item>
+
+        <item name="messageInputColorSurface">@color/light_grey_100</item>
+
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
 
