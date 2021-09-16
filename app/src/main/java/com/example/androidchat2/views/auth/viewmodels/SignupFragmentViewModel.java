@@ -23,8 +23,8 @@ public class SignupFragmentViewModel extends BaseViewModel {
     @Inject
     protected ChatRealTimeDatabase chatDB;
 
-    protected MutableLiveData<FirebaseUser> _currentUserLiveData = new MutableLiveData<>();
-    public LiveData<FirebaseUser> currentUserLiveData = _currentUserLiveData;
+    protected MutableLiveData<Boolean> _signupState = new MutableLiveData<>();
+    public LiveData<Boolean> signupState = _signupState;
 
     @Inject
     public SignupFragmentViewModel(SavedStateHandle savedStateHandle) {
@@ -58,9 +58,10 @@ public class SignupFragmentViewModel extends BaseViewModel {
                 .addOnFailureListener(e -> {
                     ErrorStatus errorStatus = new ErrorStatus(e.getMessage());
                     _errorLiveData.postValue(errorStatus);
+                    _signupState.postValue(false);
                 })
                 .addOnSuccessListener(unused -> {
-                    _currentUserLiveData.postValue(firebaseUser);
+                    _signupState.postValue(true);
                 });
     }
 }

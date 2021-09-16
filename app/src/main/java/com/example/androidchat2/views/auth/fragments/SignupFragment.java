@@ -70,9 +70,10 @@ public class SignupFragment extends BaseFragment {
 
     @Override
     public void subscribeObservers() {
-        signupViewModel.currentUserLiveData.observe(getViewLifecycleOwner(), firebaseUser -> {
-            mainViewModel.setCurrentFirebaseUser(firebaseUser);
-            mainViewModel.getCurrentChatUser(firebaseUser);
+        signupViewModel.signupState.observe(getViewLifecycleOwner(), successState -> {
+            if (successState) {
+                mainViewModel.getCurrentChatUser();
+            }
         });
 
         mainViewModel.currentChatUser.observe(getViewLifecycleOwner(), chatUser -> onUserSignedUp());
@@ -84,7 +85,7 @@ public class SignupFragment extends BaseFragment {
 
     @Override
     public void unsubscribeObservers() {
-        signupViewModel.currentUserLiveData.removeObservers(getViewLifecycleOwner());
+        signupViewModel.signupState.removeObservers(getViewLifecycleOwner());
         mainViewModel.currentChatUser.removeObservers(getViewLifecycleOwner());
         signupViewModel.errorLiveData.removeObservers(getViewLifecycleOwner());
     }
