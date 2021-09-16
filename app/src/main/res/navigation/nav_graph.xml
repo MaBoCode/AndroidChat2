@@ -111,7 +111,8 @@
 
         <argument
             android:name="chatGroup"
-            app:nullable="false"
+            app:nullable="true"
+            android:defaultValue="@null"
             app:argType=".core.chat.ChatGroup" />
 
     </fragment>
