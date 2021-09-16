@@ -121,7 +121,7 @@ public class AddChatDialogDialogFragment extends BaseDialogFragment {
     public void subscribeObservers() {
         addDialogViewModel.usersLiveData.observe(getViewLifecycleOwner(), this::setupUsersAdapter);
 
-        addDialogViewModel.createdGroupLiveData.observe(getViewLifecycleOwner(), chatDialog -> mainViewModel.getCurrentChatUser(mainViewModel.getCurrentFirebaseUser()));
+        addDialogViewModel.createdGroupLiveData.observe(getViewLifecycleOwner(), chatDialog -> mainViewModel.getCurrentChatUser());
 
         mainViewModel.currentChatUser.observe(getViewLifecycleOwner(), chatUser -> {
             addDialogViewModel.setCurrentChatUser(chatUser);
