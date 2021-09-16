@@ -7,6 +7,7 @@ import com.stfalcon.chatkit.commons.models.IUser;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class ChatGroup implements IDialog<ChatMessage>, Serializable {
 
@@ -15,15 +16,15 @@ public class ChatGroup implements IDialog<ChatMessage>, Serializable {
     private int unreadCount = 0;
     private ChatMessage lastMsg;
 
+    private List<String> userIds = new ArrayList<>();
+
     private List<ChatUser> users = new ArrayList<>();
 
     public ChatGroup() {
     }
 
     public ChatGroup(String id, String dialogName, List<ChatUser> users) {
-        this.id = id;
-        this.dialogName = dialogName;
-        this.users = users;
+        this(id, dialogName, 0, null, users);
     }
 
     public ChatGroup(String id, String dialogName, int unreadCount, ChatMessage lastMessage, List<ChatUser> users) {
@@ -32,6 +33,7 @@ public class ChatGroup implements IDialog<ChatMessage>, Serializable {
         this.unreadCount = unreadCount;
         this.lastMsg = lastMessage;
         this.users = users;
+        this.userIds = users.stream().map(ChatUser::getId).collect(Collectors.toList());
     }
 
     public void setId(String id) {
@@ -50,6 +52,10 @@ public class ChatGroup implements IDialog<ChatMessage>, Serializable {
         this.users = users;
     }
 
+    public void setUserIds(List<String> userIds) {
+        this.userIds = userIds;
+    }
+
     @Override
     public String getId() {
         return id;
@@ -65,9 +71,14 @@ public class ChatGroup implements IDialog<ChatMessage>, Serializable {
         return dialogName;
     }
 
+    @Exclude
     @Override
     public List<? extends IUser> getUsers() {
         return users;
+    }
+
+    public List<String> getUserIds() {
+        return userIds;
     }
 
     public ChatMessage getLastMsg() {
@@ -97,9 +108,12 @@ public class ChatGroup implements IDialog<ChatMessage>, Serializable {
 
     @Override
     public String toString() {
-        return "ChatDialog{" +
+        return "ChatGroup{" +
                 "id='" + id + '\'' +
                 ", dialogName='" + dialogName + '\'' +
+                ", unreadCount=" + unreadCount +
+                ", lastMsg=" + lastMsg +
+                ", userIds=" + userIds +
                 ", users=" + users +
                 '}';
     }

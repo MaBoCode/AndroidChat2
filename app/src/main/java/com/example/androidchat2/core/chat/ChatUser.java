@@ -5,7 +5,9 @@ import com.stfalcon.chatkit.commons.models.IUser;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class ChatUser implements IUser, Serializable {
 
@@ -13,6 +15,7 @@ public class ChatUser implements IUser, Serializable {
     private String name;
     private String email;
     private List<String> dialogIds = new ArrayList<>();
+    private Set<String> notificationTokens = new HashSet<>();
 
     public ChatUser() {
     }
@@ -32,6 +35,10 @@ public class ChatUser implements IUser, Serializable {
         return dialogIds.add(dialogId);
     }
 
+    public boolean addNotificationToken(String token) {
+        return notificationTokens.add(token);
+    }
+
     public void setId(String id) {
         this.id = id;
     }
@@ -42,6 +49,10 @@ public class ChatUser implements IUser, Serializable {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public void setNotificationTokens(List<String> notificationTokens) {
+        this.notificationTokens = new HashSet<>(notificationTokens);
     }
 
     @Override
@@ -65,6 +76,10 @@ public class ChatUser implements IUser, Serializable {
 
     public List<String> getDialogIds() {
         return dialogIds;
+    }
+
+    public List<String> getNotificationTokens() {
+        return new ArrayList<>(notificationTokens);
     }
 
     @Override

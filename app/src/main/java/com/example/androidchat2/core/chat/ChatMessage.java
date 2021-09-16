@@ -12,15 +12,17 @@ public class ChatMessage implements IMessage, Serializable {
     private String text;
     private ChatUser user;
     private Date createdAt;
+    private String toGroupId;
 
     public ChatMessage() {
     }
 
-    public ChatMessage(String id, String text, ChatUser user, Date createdAt) {
+    public ChatMessage(String id, String text, ChatUser user, Date createdAt, String toGroupId) {
         this.id = id;
         this.text = text;
         this.user = user;
         this.createdAt = createdAt;
+        this.toGroupId = toGroupId;
     }
 
     @Override
@@ -43,6 +45,10 @@ public class ChatMessage implements IMessage, Serializable {
         return createdAt;
     }
 
+    public String getToGroupId() {
+        return toGroupId;
+    }
+
     public void setId(String id) {
         this.id = id;
     }
@@ -59,6 +65,10 @@ public class ChatMessage implements IMessage, Serializable {
         this.createdAt = createdAt;
     }
 
+    public void setToGroupId(String toGroupId) {
+        this.toGroupId = toGroupId;
+    }
+
     @Override
     public String toString() {
         return "ChatMessage{" +
@@ -66,6 +76,7 @@ public class ChatMessage implements IMessage, Serializable {
                 ", text='" + text + '\'' +
                 ", user=" + user +
                 ", createdAt=" + createdAt +
+                ", toGroupId='" + toGroupId + '\'' +
                 '}';
     }
 }
