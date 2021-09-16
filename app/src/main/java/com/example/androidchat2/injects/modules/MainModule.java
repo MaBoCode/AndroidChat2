@@ -3,6 +3,7 @@ package com.example.androidchat2.injects.modules;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.messaging.FirebaseMessaging;
 
 import javax.inject.Singleton;
 
@@ -19,6 +20,12 @@ public class MainModule {
     @Provides
     public FirebaseAuth provideFirebaseAuth() {
         return FirebaseAuth.getInstance();
+    }
+
+    @Singleton
+    @Provides
+    public FirebaseMessaging provideFirebaseMessaging() {
+        return FirebaseMessaging.getInstance();
     }
 
     @Singleton
