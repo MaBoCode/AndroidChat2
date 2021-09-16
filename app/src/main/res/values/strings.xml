@@ -15,4 +15,5 @@
     <string name="username_hint">Username</string>
     <string name="msg_input_hint_not_focused">Aa</string>
     <string name="msg_input_hint_focused">Type a message…</string>
+    <string name="new_message_notification_channel_id">new_message_notification_channel</string>
 </resources>
