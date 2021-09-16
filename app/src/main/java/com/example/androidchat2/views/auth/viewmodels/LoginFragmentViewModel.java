@@ -7,7 +7,6 @@ import androidx.lifecycle.SavedStateHandle;
 import com.example.androidchat2.injects.base.BaseViewModel;
 import com.example.androidchat2.views.utils.rxfirebase.RxFirebaseAuth;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 
 import javax.inject.Inject;
 
@@ -16,8 +15,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel;
 @HiltViewModel
 public class LoginFragmentViewModel extends BaseViewModel {
 
-    protected MutableLiveData<FirebaseUser> _currentUserLiveData = new MutableLiveData<>();
-    public LiveData<FirebaseUser> currentUserLiveData = _currentUserLiveData;
+    protected MutableLiveData<Boolean> _loginStateLiveData = new MutableLiveData<>();
+    public LiveData<Boolean> loginStateLiveData = _loginStateLiveData;
 
     @Inject
     public LoginFragmentViewModel(SavedStateHandle savedStateHandle) {
@@ -30,7 +29,11 @@ public class LoginFragmentViewModel extends BaseViewModel {
                 .doOnSubscribe(loadingStatusConsumer)
                 .doFinally(notLoadingStatusAction)
                 .subscribe(authResult -> {
-                    _currentUserLiveData.postValue(authResult.getUser());
+                    if (authResult.getUser() != null) {
+                        _loginStateLiveData.postValue(true);
+                    } else {
+                        _loginStateLiveData.postValue(false);
+                    }
                 }, errorStatusConsumer);
     }
 }

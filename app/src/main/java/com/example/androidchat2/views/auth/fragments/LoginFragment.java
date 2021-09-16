@@ -72,12 +72,15 @@ public class LoginFragment extends BaseFragment {
 
     @Override
     public void subscribeObservers() {
-        loginViewModel.currentUserLiveData.observe(getViewLifecycleOwner(), firebaseUser -> {
-            mainViewModel.setCurrentFirebaseUser(firebaseUser);
-            mainViewModel.getCurrentChatUser(firebaseUser);
+        loginViewModel.loginStateLiveData.observe(getViewLifecycleOwner(), successState -> {
+            if (successState) {
+                mainViewModel.getCurrentChatUser();
+            }
         });
 
-        mainViewModel.currentChatUser.observe(getViewLifecycleOwner(), chatUser -> onUserLoggedIn());
+        mainViewModel.currentChatUser.observe(getViewLifecycleOwner(), chatUser -> {
+            onUserLoggedIn();
+        });
 
         loginViewModel.errorLiveData.observe(
                 getViewLifecycleOwner(),
@@ -86,7 +89,7 @@ public class LoginFragment extends BaseFragment {
 
     @Override
     public void unsubscribeObservers() {
-        loginViewModel.currentUserLiveData.removeObservers(getViewLifecycleOwner());
+        loginViewModel.loginStateLiveData.removeObservers(getViewLifecycleOwner());
         mainViewModel.currentChatUser.removeObservers(getViewLifecycleOwner());
         loginViewModel.errorLiveData.removeObservers(getViewLifecycleOwner());
     }
