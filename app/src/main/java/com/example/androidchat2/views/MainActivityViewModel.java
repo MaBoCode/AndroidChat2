@@ -9,11 +9,13 @@ import com.example.androidchat2.core.chat.ChatUser;
 import com.example.androidchat2.core.firebase.ChatRealTimeDatabase;
 import com.example.androidchat2.injects.base.BaseViewModel;
 import com.example.androidchat2.utils.Logs;
+import com.example.androidchat2.views.utils.rxfirebase.ErrorStatus;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.messaging.FirebaseMessaging;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -28,12 +30,16 @@ public class MainActivityViewModel extends BaseViewModel {
     protected FirebaseAuth firebaseAuth;
 
     @Inject
-    protected ChatRealTimeDatabase chatDB;
+    protected FirebaseMessaging firebaseMessaging;
 
-    protected FirebaseUser currentFirebaseUser;
+    @Inject
+    protected ChatRealTimeDatabase chatDB;
 
     protected MutableLiveData<ChatUser> _currentChatUser = new MutableLiveData<>();
     public LiveData<ChatUser> currentChatUser = _currentChatUser;
+
+    protected MutableLiveData<String> _currentNotificationToken = new MutableLiveData<>();
+    public LiveData<String> currentNotificationToken = _currentNotificationToken;
 
     @Inject
     public MainActivityViewModel(SavedStateHandle savedStateHandle) {
@@ -43,11 +49,11 @@ public class MainActivityViewModel extends BaseViewModel {
     public void logoutUser() {
         if (firebaseAuth != null) {
             firebaseAuth.signOut();
-            setCurrentFirebaseUser(null);
         }
     }
 
-    public void getCurrentChatUser(FirebaseUser currentFirebaseUser) {
+    public void getCurrentChatUser() {
+        FirebaseUser currentFirebaseUser = getCurrentFirebaseUser();
         chatDB
                 .getUsersEndpoint()
                 .child(currentFirebaseUser.getUid())
@@ -55,7 +61,16 @@ public class MainActivityViewModel extends BaseViewModel {
                     @Override
                     public void onDataChange(@NonNull @NotNull DataSnapshot snapshot) {
                         ChatUser chatUser = snapshot.getValue(ChatUser.class);
-                        _currentChatUser.postValue(chatUser);
+
+                        String currentNotificationToken = _currentNotificationToken.getValue();
+
+                        if (currentNotificationToken != null
+                                && !chatUser.getNotificationTokens().contains(currentNotificationToken)) {
+                            chatUser.addNotificationToken(currentNotificationToken);
+                            updateUserEntry(chatUser);
+                        } else {
+                            _currentChatUser.postValue(chatUser);
+                        }
                     }
 
                     @Override
@@ -65,12 +80,29 @@ public class MainActivityViewModel extends BaseViewModel {
                 });
     }
 
-    public void setCurrentFirebaseUser(FirebaseUser currentFirebaseUser) {
-        this.currentFirebaseUser = currentFirebaseUser;
+    public void updateUserEntry(ChatUser chatUser) {
+        chatDB
+                .updateValue(chatDB.getUsersEndpoint(), chatUser.getId(), chatUser)
+                .addOnFailureListener(e -> {
+                    ErrorStatus errorStatus = new ErrorStatus(e.getMessage());
+                    _errorLiveData.postValue(errorStatus);
+                })
+                .addOnSuccessListener(unused -> {
+                    _currentChatUser.postValue(chatUser);
+                });
+    }
+
+    public void getNotificationRegistrationToken() {
+        firebaseMessaging
+                .getToken()
+                .addOnSuccessListener(token -> {
+                    _currentNotificationToken.postValue(token);
+                });
+
     }
 
     public FirebaseUser getCurrentFirebaseUser() {
-        return currentFirebaseUser;
+        return getFirebaseAuth().getCurrentUser();
     }
 
     public FirebaseAuth getFirebaseAuth() {
