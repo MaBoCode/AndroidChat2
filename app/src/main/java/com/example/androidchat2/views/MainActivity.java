@@ -25,6 +25,15 @@ public class MainActivity extends BaseActivity {
 
         binding = ActMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+
+        mainViewModel.getNotificationRegistrationToken();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        mainViewModel.getNotificationRegistrationToken();
     }
 
     @Override
