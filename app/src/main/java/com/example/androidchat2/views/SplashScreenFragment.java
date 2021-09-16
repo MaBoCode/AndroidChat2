@@ -52,8 +52,7 @@ public class SplashScreenFragment extends BaseFragment {
         if (currentUser == null) {
             Navigation.findNavController(binding.getRoot()).navigate(R.id.splash_to_signup_fragment);
         } else {
-            mainViewModel.setCurrentFirebaseUser(currentUser);
-            mainViewModel.getCurrentChatUser(currentUser);
+            mainViewModel.getCurrentChatUser();
         }
     }
 
