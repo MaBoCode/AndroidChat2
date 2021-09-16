@@ -17,6 +17,7 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.messaging.FirebaseMessaging;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -34,8 +35,16 @@ public class ChatMessagesFragmentViewModel extends BaseViewModel {
     @Inject
     protected ChatRealTimeDatabase chatDB;
 
+    @Inject
+    protected FirebaseMessaging firebaseMessaging;
+
     protected ChatGroup currentGroup;
-    protected ChatUser currentChatUser;
+
+    protected MutableLiveData<ChatGroup> _currentGroupLiveData = new MutableLiveData<>();
+    public LiveData<ChatGroup> currentGroupLiveData = _currentGroupLiveData;
+
+    protected MutableLiveData<List<ChatUser>> _groupChatUsers = new MutableLiveData<>();
+    public LiveData<List<ChatUser>> groupChatUsers = _groupChatUsers;
 
     protected MutableLiveData<List<ChatUserGroup>> _userGroupsLiveData = new MutableLiveData<>();
     public LiveData<List<ChatUserGroup>> userGroupsLiveData = _userGroupsLiveData;
@@ -54,15 +63,17 @@ public class ChatMessagesFragmentViewModel extends BaseViewModel {
         super(savedStateHandle);
     }
 
-    public void sendMessage(String value) {
+    public void sendMessage(ChatUser currentChatUser, ChatGroup currentGroup, String value) {
         String msgId = chatDB.getNewKey(chatDB.getMessagesEndpoint());
 
-        ChatMessage msg = new ChatMessage(msgId, value, currentChatUser, new Date());
+        Date currentDate = new Date();
+        String currentGroupId = currentGroup.getId();
+        ChatMessage msg = new ChatMessage(msgId, value, currentChatUser, currentDate, currentGroupId);
 
         List<ChatUserGroup> userGroups = userGroupsLiveData.getValue();
 
         if (userGroups == null) {
-            return;
+            throw new RuntimeException("userGroups is null");
         }
 
         List<ChatMessageRecipient> messageRecipients = new ArrayList<>();
@@ -82,11 +93,46 @@ public class ChatMessagesFragmentViewModel extends BaseViewModel {
                 .insertValue(chatDB.getMessagesEndpoint(), msg.getId(), msg)
                 .addOnSuccessListener(unused -> {
                     _sentMessageLiveData.postValue(msg);
-                    setDialogLastMessage(msg);
+                    setDialogLastMessage(currentGroup, msg);
                 });
     }
 
-    public void getUserGroups() {
+    public void getGroupById(String groupId) {
+        chatDB
+                .getGroupsEndpoint()
+                .child(groupId)
+                .get()
+                .addOnSuccessListener(snapshot -> {
+                    ChatGroup group = snapshot.getValue(ChatGroup.class);
+
+                    getUsersFromIds(group.getUserIds());
+
+                    _currentGroupLiveData.postValue(group);
+                    setCurrentGroup(group);
+                });
+    }
+
+    public void getUsersFromIds(List<String> userIds) {
+        chatDB
+                .getUsersEndpoint()
+                .get()
+                .addOnSuccessListener(snapshot -> {
+                    List<ChatUser> groupUsers = new ArrayList<>();
+
+                    for (String userId : userIds) {
+                        ChatUser chatUser = snapshot.child(userId).getValue(ChatUser.class);
+                        groupUsers.add(chatUser);
+                    }
+
+                    if (groupUsers.isEmpty()) {
+                        throw new RuntimeException("Users is empty");
+                    }
+
+                    _groupChatUsers.postValue(groupUsers);
+                });
+    }
+
+    public void getUserGroups(ChatGroup currentGroup) {
         chatDB
                 .getUserGroupsEndpoint()
                 .get()
@@ -94,7 +140,7 @@ public class ChatMessagesFragmentViewModel extends BaseViewModel {
                     List<ChatUserGroup> groups = new ArrayList<>();
                     for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
                         ChatUserGroup group = dataSnapshot.getValue(ChatUserGroup.class);
-                        if (group.getGroupId().equals(currentGroup.getId())) {
+                        if (group != null && group.getGroupId().equals(currentGroup.getId())) {
                             groups.add(group);
                         }
                     }
@@ -119,7 +165,7 @@ public class ChatMessagesFragmentViewModel extends BaseViewModel {
                 });
     }
 
-    public void listenForMessagesUpdates() {
+    public void listenForMessagesUpdates(ChatUser currentChatUser) {
         ChatUserGroup currentUserGroup = userGroupsLiveData.getValue()
                 .stream()
                 .filter(chatUserGroup -> chatUserGroup.getUserId().equals(currentChatUser.getId()))
@@ -149,7 +195,7 @@ public class ChatMessagesFragmentViewModel extends BaseViewModel {
                 });
     }
 
-    public void setDialogLastMessage(ChatMessage lastMessage) {
+    public void setDialogLastMessage(ChatGroup currentGroup, ChatMessage lastMessage) {
         chatDB
                 .getGroupsEndpoint()
                 .child(currentGroup.getId())
@@ -163,10 +209,6 @@ public class ChatMessagesFragmentViewModel extends BaseViewModel {
                 });
     }
 
-    public void setCurrentChatUser(ChatUser currentChatUser) {
-        this.currentChatUser = currentChatUser;
-    }
-
     public void setCurrentGroup(ChatGroup currentGroup) {
         this.currentGroup = currentGroup;
     }
@@ -174,4 +216,5 @@ public class ChatMessagesFragmentViewModel extends BaseViewModel {
     public ChatGroup getCurrentGroup() {
         return currentGroup;
     }
+
 }

@@ -50,9 +50,11 @@ public class ChatMessagesFragment extends BaseFragment {
     protected View.OnClickListener onSendMessageClick = new View.OnClickListener() {
         @Override
         public void onClick(View view) {
-            String input = binding.msgInput.getEditText().getText().toString();
-            if (!input.isEmpty()) {
-                messagesViewModel.sendMessage(input);
+            String messageContent = binding.msgInput.getEditText().getText().toString();
+            if (!messageContent.isEmpty()) {
+                ChatUser currentChatUser = mainViewModel.currentChatUser.getValue();
+                ChatGroup currentGroup = messagesViewModel.getCurrentGroup();
+                messagesViewModel.sendMessage(currentChatUser, currentGroup, messageContent);
                 binding.msgInput.getEditText().getText().clear();
             }
         }
@@ -64,11 +66,10 @@ public class ChatMessagesFragment extends BaseFragment {
             String hint;
             if (hasFocus) {
                 hint = getString(R.string.msg_input_hint_focused);
-                binding.msgInput.getEditText().setHint(hint);
             } else {
                 hint = getString(R.string.msg_input_hint_not_focused);
-                binding.msgInput.getEditText().setHint(hint);
             }
+            binding.msgInput.getEditText().setHint(hint);
         }
     };
 
@@ -99,51 +100,66 @@ public class ChatMessagesFragment extends BaseFragment {
 
         binding = FrgChatMessagesBinding.inflate(inflater, container, false);
 
+        setupMsgInput();
+
+        setupChatMessagesList();
+
+        retrieveData();
+
+        return binding.getRoot();
+    }
+
+    public void setupMsgInput() {
         binding.msgInput.setEndIconActivated(false);
         binding.msgInput.setEndIconOnClickListener(onSendMessageClick);
         binding.msgInput.getEditText().setOnFocusChangeListener(onEditTextFocusChange);
         binding.msgInput.getEditText().addTextChangedListener(msgInputWatcher);
+    }
 
+    public void setupChatMessagesList() {
         binding.chatMessagesLst.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Logs.debug(this, "click");
             }
         });
+    }
 
+    public void retrieveData() {
         ChatGroup chatGroup = ChatMessagesFragment_Args.fromBundle(getArguments()).getChatGroup();
-        messagesViewModel.setCurrentGroup(chatGroup);
-        messagesViewModel.setCurrentChatUser(mainViewModel.currentChatUser.getValue());
 
-        setupActionBar();
-        setupMessagesAdapter();
+        if (chatGroup == null) {
+            Bundle arguments = getArguments();
+            String groupId = arguments.getString("group_id");
 
-        return binding.getRoot();
+            mainViewModel.getCurrentChatUser();
+            messagesViewModel.getGroupById(groupId);
+        } else {
+            // there is a chatGroup object and currentChatUser object
+            // need to get users from list of ids
+            messagesViewModel.setCurrentGroup(chatGroup);
+
+            messagesViewModel.getUserGroups(chatGroup);
+            messagesViewModel.getUsersFromIds(chatGroup.getUserIds());
+            setupMessagesAdapter(mainViewModel.currentChatUser.getValue());
+        }
     }
 
-    @Override
-    public void onResume() {
-        super.onResume();
-
-        messagesViewModel.getUserGroups();
-    }
-
-    public void setupActionBar() {
+    public void setupActionBar(ChatUser currentUser, List<ChatUser> chatUsers) {
         MaterialToolbar tlbMessages = binding.tlbMessages;
         AppCompatActivity activity = (AppCompatActivity) requireActivity();
         activity.setSupportActionBar(tlbMessages);
 
         activity.getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        List<? extends IUser> dialogMembers = messagesViewModel.getCurrentGroup().getUsers();
         StringBuilder tlbTitle = new StringBuilder();
         int i = 0;
-        for (IUser user : dialogMembers) {
+        for (IUser user : chatUsers) {
             ChatUser chatUser = (ChatUser) user;
-            if (!chatUser.getId().equals(mainViewModel.currentChatUser.getValue().getId())) {
+            if (!chatUser.getId().equals(currentUser.getId())) {
                 tlbTitle.append(chatUser.getName());
 
-                if (i < dialogMembers.size() - 2) {
+                if (i < chatUsers.size() - 2) {
                     tlbTitle.append(", ");
                 }
                 i++;
@@ -154,8 +170,8 @@ public class ChatMessagesFragment extends BaseFragment {
         tlbMessages.setNavigationOnClickListener(view -> Navigation.findNavController(binding.getRoot()).navigateUp());
     }
 
-    public void setupMessagesAdapter() {
-        String senderId = mainViewModel.currentChatUser.getValue().getId();
+    public void setupMessagesAdapter(ChatUser currentUser) {
+        String senderId = currentUser.getId();
 
         MessageHolders holders = new MessageHolders()
                 .setIncomingTextLayout(R.layout.view_incoming_txt_msg)
@@ -183,10 +199,20 @@ public class ChatMessagesFragment extends BaseFragment {
     @Override
     public void subscribeObservers() {
 
-        mainViewModel.currentChatUser.observe(getViewLifecycleOwner(), chatUser -> messagesViewModel.setCurrentChatUser(chatUser));
+        mainViewModel.currentChatUser.observe(getViewLifecycleOwner(), this::setupMessagesAdapter);
+
+        messagesViewModel.currentGroupLiveData.observe(getViewLifecycleOwner(), chatGroup -> {
+            messagesViewModel.getUserGroups(chatGroup);
+            messagesViewModel.getUsersFromIds(chatGroup.getUserIds());
+        });
+
+        messagesViewModel.groupChatUsers.observe(getViewLifecycleOwner(), chatUsers -> {
+            Logs.debug(this, "users:" + chatUsers.size());
+            setupActionBar(mainViewModel.currentChatUser.getValue(), chatUsers);
+        });
 
         messagesViewModel.userGroupsLiveData.observe(getViewLifecycleOwner(), chatUserGroups -> {
-            messagesViewModel.listenForMessagesUpdates();
+            messagesViewModel.listenForMessagesUpdates(mainViewModel.currentChatUser.getValue());
         });
 
         messagesViewModel.messageRecipientsLiveData.observe(getViewLifecycleOwner(), chatMessageRecipients -> messagesViewModel.getMessages());

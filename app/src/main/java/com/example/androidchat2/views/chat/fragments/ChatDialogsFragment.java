@@ -16,7 +16,6 @@ import com.example.androidchat2.R;
 import com.example.androidchat2.core.chat.ChatGroup;
 import com.example.androidchat2.databinding.FrgChatDialogsBinding;
 import com.example.androidchat2.injects.base.BaseFragment;
-import com.example.androidchat2.utils.Logs;
 import com.example.androidchat2.views.MainActivityViewModel;
 import com.example.androidchat2.views.chat.utils.ChatImageLoader;
 import com.example.androidchat2.views.chat.viewmodels.AddChatDialogFragmentViewModel;
@@ -68,7 +67,8 @@ public class ChatDialogsFragment extends BaseFragment implements DialogsListAdap
 
     @Override
     public void onDialogClick(ChatGroup dialog) {
-        ChatDialogsFragment_Directions.ToChatMessagesFragment action = ChatDialogsFragment_Directions.toChatMessagesFragment(dialog);
+        ChatDialogsFragment_Directions.ToChatMessagesFragment action = ChatDialogsFragment_Directions.toChatMessagesFragment();
+        action.setChatGroup(dialog);
         Navigation.findNavController(binding.getRoot()).navigate(action);
     }
 
@@ -80,10 +80,10 @@ public class ChatDialogsFragment extends BaseFragment implements DialogsListAdap
 
     @Click
     public void logoutBtnClicked() {
-        Logs.debug(this, "logout");
-        //mainViewModel.logoutUser();
+        // TODO: fix back navigation
+        mainViewModel.logoutUser();
         //Navigation.findNavController(binding.getRoot()).popBackStack();
-        Navigation.findNavController(binding.getRoot()).navigateUp();
+        //Navigation.findNavController(binding.getRoot()).navigateUp();
     }
 
     public void displayDialogs(List<ChatGroup> chatGroups) {
