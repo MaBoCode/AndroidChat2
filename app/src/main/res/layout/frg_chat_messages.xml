@@ -78,7 +78,8 @@
             android:textAppearance="@style/TextAppearance.Apptemplatejava.Body1"
             android:inputType="textCapSentences|textAutoComplete|textAutoCorrect|textLongMessage|textMultiLine|textShortMessage"
             android:hint="@string/msg_input_hint_not_focused"
-            android:background="@drawable/bg_chat_msg_input" />
+            android:background="@drawable/bg_chat_msg_input"
+            android:maxLines="6" />
 
     </com.google.android.material.textfield.TextInputLayout>
 
