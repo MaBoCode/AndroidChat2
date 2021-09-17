@@ -38,8 +38,7 @@ public class MainActivityViewModel extends BaseViewModel {
     protected MutableLiveData<ChatUser> _currentChatUser = new MutableLiveData<>();
     public LiveData<ChatUser> currentChatUser = _currentChatUser;
 
-    protected MutableLiveData<String> _currentNotificationToken = new MutableLiveData<>();
-    public LiveData<String> currentNotificationToken = _currentNotificationToken;
+    protected MutableLiveData<String> _currentRegistrationToken = new MutableLiveData<>();
 
     @Inject
     public MainActivityViewModel(SavedStateHandle savedStateHandle) {
@@ -62,7 +61,7 @@ public class MainActivityViewModel extends BaseViewModel {
                     public void onDataChange(@NonNull @NotNull DataSnapshot snapshot) {
                         ChatUser chatUser = snapshot.getValue(ChatUser.class);
 
-                        String currentNotificationToken = _currentNotificationToken.getValue();
+                        String currentNotificationToken = _currentRegistrationToken.getValue();
 
                         if (currentNotificationToken != null
                                 && !chatUser.getNotificationTokens().contains(currentNotificationToken)) {
@@ -92,11 +91,11 @@ public class MainActivityViewModel extends BaseViewModel {
                 });
     }
 
-    public void getNotificationRegistrationToken() {
+    public void getRegistrationToken() {
         firebaseMessaging
                 .getToken()
                 .addOnSuccessListener(token -> {
-                    _currentNotificationToken.postValue(token);
+                    _currentRegistrationToken.postValue(token);
                 });
 
     }
