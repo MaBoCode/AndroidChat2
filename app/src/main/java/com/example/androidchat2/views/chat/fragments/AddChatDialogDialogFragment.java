@@ -18,7 +18,6 @@ import com.example.androidchat2.databinding.DlgAddChatDialogBinding;
 import com.example.androidchat2.injects.base.BaseDialogFragment;
 import com.example.androidchat2.views.MainActivityViewModel;
 import com.example.androidchat2.views.chat.viewmodels.AddChatDialogFragmentViewModel;
-import com.example.androidchat2.views.chat.viewmodels.ChatDialogsFragmentViewModel;
 import com.example.androidchat2.views.utils.rxfirebase.ErrorStatus;
 
 import org.androidannotations.annotations.Click;
@@ -39,7 +38,6 @@ public class AddChatDialogDialogFragment extends BaseDialogFragment {
     protected DlgAddChatDialogBinding binding;
 
     protected MainActivityViewModel mainViewModel;
-    protected ChatDialogsFragmentViewModel dialogsViewModel;
     protected AddChatDialogFragmentViewModel addDialogViewModel;
 
     @Nullable
@@ -49,6 +47,9 @@ public class AddChatDialogDialogFragment extends BaseDialogFragment {
         super.onCreateView(inflater, container, savedInstanceState);
 
         binding = DlgAddChatDialogBinding.inflate(inflater, container, false);
+
+        addDialogViewModel.getUsers();
+        addDialogViewModel.getUserGroups(mainViewModel.currentChatUser.getValue());
 
         return binding.getRoot();
     }
@@ -105,13 +106,6 @@ public class AddChatDialogDialogFragment extends BaseDialogFragment {
     }
 
     @Override
-    public void onStart() {
-        super.onStart();
-
-        addDialogViewModel.getUsers();
-    }
-
-    @Override
     public void initViewModels() {
         mainViewModel = new ViewModelProvider(requireActivity()).get(MainActivityViewModel.class);
         addDialogViewModel = new ViewModelProvider(requireActivity()).get(AddChatDialogFragmentViewModel.class);
@@ -121,12 +115,11 @@ public class AddChatDialogDialogFragment extends BaseDialogFragment {
     public void subscribeObservers() {
         addDialogViewModel.usersLiveData.observe(getViewLifecycleOwner(), this::setupUsersAdapter);
 
-        addDialogViewModel.createdGroupLiveData.observe(getViewLifecycleOwner(), chatDialog -> mainViewModel.getCurrentChatUser());
-
-        mainViewModel.currentChatUser.observe(getViewLifecycleOwner(), chatUser -> {
-            addDialogViewModel.setCurrentChatUser(chatUser);
-            if (addDialogViewModel.createdGroupLiveData.getValue() != null) {
+        addDialogViewModel.createdGroupLiveData.observe(getViewLifecycleOwner(), chatGroup -> {
+            if (chatGroup != null) {
                 dismissDialog();
+            } else {
+                throw new NullPointerException("ChatGroup is null");
             }
         });
 

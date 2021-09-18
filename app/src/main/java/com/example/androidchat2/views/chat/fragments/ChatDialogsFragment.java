@@ -41,8 +41,6 @@ public class ChatDialogsFragment extends BaseFragment implements DialogsListAdap
 
     protected DialogsListAdapter<ChatGroup> dialogsAdapter;
 
-    boolean isInit = true;
-
     @Nullable
     @org.jetbrains.annotations.Nullable
     @Override
@@ -51,9 +49,9 @@ public class ChatDialogsFragment extends BaseFragment implements DialogsListAdap
 
         binding = FrgChatDialogsBinding.inflate(inflater, container, false);
 
-        dialogsViewModel.setCurrentChatUser(mainViewModel.currentChatUser.getValue());
-
         setupDialogsAdapter();
+
+        dialogsViewModel.listenForGroupCreation(mainViewModel.currentChatUser.getValue());
 
         return binding.getRoot();
     }
@@ -90,14 +88,6 @@ public class ChatDialogsFragment extends BaseFragment implements DialogsListAdap
     }
 
     @Override
-    public void onStart() {
-
-        dialogsViewModel.getUserGroups();
-
-        super.onStart();
-    }
-
-    @Override
     public void initViewModels() {
         mainViewModel = new ViewModelProvider(requireActivity()).get(MainActivityViewModel.class);
         dialogsViewModel = new ViewModelProvider(this).get(ChatDialogsFragmentViewModel.class);
@@ -107,23 +97,13 @@ public class ChatDialogsFragment extends BaseFragment implements DialogsListAdap
     @Override
     public void subscribeObservers() {
 
-        mainViewModel.currentChatUser.observe(getViewLifecycleOwner(), chatUser -> {
-            dialogsViewModel.setCurrentChatUser(chatUser);
-        });
-
-        dialogsViewModel.userGroupsLiveData.observe(getViewLifecycleOwner(), chatUserGroups -> dialogsViewModel.getGroups());
-
-        dialogsViewModel.groupsLiveData.observe(getViewLifecycleOwner(), chatGroups -> {
-
-            if (isInit) {
-                dialogsViewModel.listenForGroupsUpdates();
-                isInit = false;
-            }
-
-            displayDialogs(chatGroups);
-        });
+        dialogsViewModel.groupsLiveData.observe(getViewLifecycleOwner(), this::displayDialogs);
 
         addDialogViewModel.createdGroupLiveData.observe(getViewLifecycleOwner(), chatGroup -> dialogsAdapter.addItem(chatGroup));
+
+        dialogsViewModel.groupToUpdateLiveData.observe(getViewLifecycleOwner(), chatGroup -> {
+
+        });
     }
 
     @Override
