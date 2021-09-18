@@ -79,7 +79,11 @@ public class LoginFragment extends BaseFragment {
         });
 
         mainViewModel.currentChatUser.observe(getViewLifecycleOwner(), chatUser -> {
-            onUserLoggedIn();
+
+            if (mainViewModel.getCurrentFirebaseUser() != null) {
+                onUserLoggedIn();
+            }
+
         });
 
         loginViewModel.errorLiveData.observe(

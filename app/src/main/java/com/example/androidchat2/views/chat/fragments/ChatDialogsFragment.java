@@ -7,7 +7,6 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
@@ -80,22 +79,22 @@ public class ChatDialogsFragment extends BaseFragment implements DialogsListAdap
 
     @Click
     public void logoutBtnClicked() {
-        // TODO: fix back navigation
         mainViewModel.logoutUser();
-        //Navigation.findNavController(binding.getRoot()).popBackStack();
-        //Navigation.findNavController(binding.getRoot()).navigateUp();
+
+        NavController navController = Navigation.findNavController(binding.getRoot());
+        navController.navigate(R.id.loginFragment);
     }
 
     public void displayDialogs(List<ChatGroup> chatGroups) {
         dialogsAdapter.setItems(chatGroups);
-        //dialogsAdapter.sortByLastMessageDate();
     }
 
     @Override
     public void onStart() {
-        super.onStart();
 
         dialogsViewModel.getUserGroups();
+
+        super.onStart();
     }
 
     @Override
@@ -124,12 +123,7 @@ public class ChatDialogsFragment extends BaseFragment implements DialogsListAdap
             displayDialogs(chatGroups);
         });
 
-        addDialogViewModel.createdGroupLiveData.observe(getViewLifecycleOwner(), new Observer<ChatGroup>() {
-            @Override
-            public void onChanged(ChatGroup chatGroup) {
-                dialogsAdapter.addItem(chatGroup);
-            }
-        });
+        addDialogViewModel.createdGroupLiveData.observe(getViewLifecycleOwner(), chatGroup -> dialogsAdapter.addItem(chatGroup));
     }
 
     @Override
