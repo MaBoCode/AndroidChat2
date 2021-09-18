@@ -15,7 +15,9 @@
         android:theme="@style/Theme.Apptemplatejava.DayNight">
 
         <!-- ACTIVITIES -->
-        <activity android:name=".views.MainActivity_">
+        <activity
+            android:name=".views.MainActivity_"
+            android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
