@@ -2,7 +2,7 @@
 <resources>
 
     <style name="Widget.Apptemplatejava.AppBarLayout" parent="Widget.MaterialComponents.AppBarLayout.Primary">
-        <item name="android:background">@color/black_800</item>
+        <item name="android:background">@color/black_900</item>
         <item name="android:elevation">0dp</item>
     </style>
 </resources>

@@ -26,6 +26,8 @@
         <item name="messageInputColorSurface">@color/black_800</item>
 
         <item name="android:windowLightStatusBar">false</item>
+
+        <item name="android:statusBarColor">@color/black_900</item>
     </style>
 
 </resources>
