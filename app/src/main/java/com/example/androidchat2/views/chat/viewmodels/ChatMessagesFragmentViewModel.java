@@ -38,8 +38,6 @@ public class ChatMessagesFragmentViewModel extends BaseViewModel {
     @Inject
     protected FirebaseMessaging firebaseMessaging;
 
-    protected ChatGroup currentGroup;
-
     protected MutableLiveData<ChatGroup> _currentGroupLiveData = new MutableLiveData<>();
     public LiveData<ChatGroup> currentGroupLiveData = _currentGroupLiveData;
 
@@ -108,7 +106,6 @@ public class ChatMessagesFragmentViewModel extends BaseViewModel {
                     getUsersFromIds(group.getUserIds());
 
                     _currentGroupLiveData.postValue(group);
-                    setCurrentGroup(group);
                 });
     }
 
@@ -209,12 +206,24 @@ public class ChatMessagesFragmentViewModel extends BaseViewModel {
                 });
     }
 
-    public void setCurrentGroup(ChatGroup currentGroup) {
-        this.currentGroup = currentGroup;
+    public void setIsLooking(ChatGroup currentGroup, ChatUser currentChatUser, boolean isLooking) {
+        chatDB
+                .getGroupsEndpoint()
+                .child(currentGroup.getId())
+                .child("isLooking")
+                .child(currentChatUser.getId())
+                .setValue(isLooking)
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Logs.error(this, e.getMessage());
+                    }
+                });
+
     }
 
-    public ChatGroup getCurrentGroup() {
-        return currentGroup;
+    public void setCurrentGroup(ChatGroup currentGroup) {
+        this._currentGroupLiveData.postValue(currentGroup);
     }
 
 }
