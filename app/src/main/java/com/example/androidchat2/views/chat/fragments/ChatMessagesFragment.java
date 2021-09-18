@@ -19,7 +19,6 @@ import com.example.androidchat2.core.chat.ChatMessage;
 import com.example.androidchat2.core.chat.ChatUser;
 import com.example.androidchat2.databinding.FrgChatMessagesBinding;
 import com.example.androidchat2.injects.base.BaseFragment;
-import com.example.androidchat2.utils.Logs;
 import com.example.androidchat2.views.MainActivityViewModel;
 import com.example.androidchat2.views.chat.utils.ChatImageLoader;
 import com.example.androidchat2.views.chat.viewmodels.ChatMessagesFragmentViewModel;
@@ -102,8 +101,6 @@ public class ChatMessagesFragment extends BaseFragment {
 
         setupMsgInput();
 
-        setupChatMessagesList();
-
         retrieveData();
 
         return binding.getRoot();
@@ -114,15 +111,6 @@ public class ChatMessagesFragment extends BaseFragment {
         binding.msgInput.setEndIconOnClickListener(onSendMessageClick);
         binding.msgInput.getEditText().setOnFocusChangeListener(onEditTextFocusChange);
         binding.msgInput.getEditText().addTextChangedListener(msgInputWatcher);
-    }
-
-    public void setupChatMessagesList() {
-        binding.chatMessagesLst.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Logs.debug(this, "click");
-            }
-        });
     }
 
     public void retrieveData() {
@@ -142,12 +130,10 @@ public class ChatMessagesFragment extends BaseFragment {
                 throw new NullPointerException("currentChatUser shouldn't be null.");
             }
 
-            // there is a chatGroup object and currentChatUser object
-            // need to get users from list of ids
-            messagesViewModel.setCurrentGroup(chatGroup);
-            messagesViewModel.getUserGroups(chatGroup);
-            messagesViewModel.getUsersFromIds(chatGroup.getUserIds());
             setupMessagesAdapter(currentChatUser);
+            messagesViewModel.setCurrentGroup(chatGroup);
+            messagesViewModel.getUsersFromIds(chatGroup.getUserIds());
+            messagesViewModel.listenForMessagesUpdates(chatGroup);
         }
     }
 
@@ -208,7 +194,7 @@ public class ChatMessagesFragment extends BaseFragment {
         mainViewModel.currentChatUser.observe(getViewLifecycleOwner(), this::setupMessagesAdapter);
 
         messagesViewModel.currentGroupLiveData.observe(getViewLifecycleOwner(), chatGroup -> {
-            messagesViewModel.getUserGroups(chatGroup);
+            messagesViewModel.listenForMessagesUpdates(chatGroup);
             messagesViewModel.getUsersFromIds(chatGroup.getUserIds());
             messagesViewModel.setIsLooking(chatGroup, mainViewModel.currentChatUser.getValue(), true);
         });
@@ -217,20 +203,12 @@ public class ChatMessagesFragment extends BaseFragment {
             setupActionBar(mainViewModel.currentChatUser.getValue(), chatUsers);
         });
 
-        messagesViewModel.userGroupsLiveData.observe(getViewLifecycleOwner(), chatUserGroups -> {
-            messagesViewModel.listenForMessagesUpdates(mainViewModel.currentChatUser.getValue());
-        });
-
-        messagesViewModel.messageRecipientsLiveData.observe(getViewLifecycleOwner(), chatMessageRecipients -> messagesViewModel.getMessages());
-
         messagesViewModel.messagesLiveData.observe(getViewLifecycleOwner(), this::displayMessages);
     }
 
     @Override
     public void unsubscribeObservers() {
         mainViewModel.currentChatUser.removeObservers(getViewLifecycleOwner());
-        messagesViewModel.userGroupsLiveData.removeObservers(getViewLifecycleOwner());
-        messagesViewModel.messageRecipientsLiveData.removeObservers(getViewLifecycleOwner());
         messagesViewModel.messagesLiveData.removeObservers(getViewLifecycleOwner());
     }
 

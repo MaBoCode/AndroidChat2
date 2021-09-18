@@ -35,6 +35,7 @@ public class ChatMessage implements IMessage, Serializable {
         return text;
     }
 
+    // TODO: exclude, fetch user by id
     @Override
     public IUser getUser() {
         return user;
@@ -57,6 +58,7 @@ public class ChatMessage implements IMessage, Serializable {
         this.text = text;
     }
 
+    // TODO: exclude, fetch user by id
     public void setUser(ChatUser user) {
         this.user = user;
     }

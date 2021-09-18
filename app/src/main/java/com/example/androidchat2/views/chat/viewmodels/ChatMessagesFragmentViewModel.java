@@ -7,9 +7,8 @@ import androidx.lifecycle.SavedStateHandle;
 
 import com.example.androidchat2.core.chat.ChatGroup;
 import com.example.androidchat2.core.chat.ChatMessage;
-import com.example.androidchat2.core.chat.ChatMessageRecipient;
+import com.example.androidchat2.core.chat.ChatMessageRecipients;
 import com.example.androidchat2.core.chat.ChatUser;
-import com.example.androidchat2.core.chat.ChatUserGroup;
 import com.example.androidchat2.core.firebase.ChatRealTimeDatabase;
 import com.example.androidchat2.injects.base.BaseViewModel;
 import com.example.androidchat2.utils.Logs;
@@ -22,6 +21,7 @@ import com.google.firebase.messaging.FirebaseMessaging;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -38,20 +38,15 @@ public class ChatMessagesFragmentViewModel extends BaseViewModel {
     @Inject
     protected FirebaseMessaging firebaseMessaging;
 
+    protected ChatMessageRecipients recipients = null;
+
     protected MutableLiveData<ChatGroup> _currentGroupLiveData = new MutableLiveData<>();
     public LiveData<ChatGroup> currentGroupLiveData = _currentGroupLiveData;
 
     protected MutableLiveData<List<ChatUser>> _groupChatUsers = new MutableLiveData<>();
     public LiveData<List<ChatUser>> groupChatUsers = _groupChatUsers;
 
-    protected MutableLiveData<List<ChatUserGroup>> _userGroupsLiveData = new MutableLiveData<>();
-    public LiveData<List<ChatUserGroup>> userGroupsLiveData = _userGroupsLiveData;
-
     protected MutableLiveData<ChatMessage> _sentMessageLiveData = new MutableLiveData<>();
-    public LiveData<ChatMessage> sentMessageLiveData = _sentMessageLiveData;
-
-    protected MutableLiveData<List<ChatMessageRecipient>> _messageRecipientsLiveData = new MutableLiveData<>();
-    public LiveData<List<ChatMessageRecipient>> messageRecipientsLiveData = _messageRecipientsLiveData;
 
     protected MutableLiveData<List<ChatMessage>> _messagesLiveData = new MutableLiveData<>();
     public LiveData<List<ChatMessage>> messagesLiveData = _messagesLiveData;
@@ -68,24 +63,16 @@ public class ChatMessagesFragmentViewModel extends BaseViewModel {
         String currentGroupId = currentGroup.getId();
         ChatMessage msg = new ChatMessage(msgId, value, currentChatUser, currentDate, currentGroupId);
 
-        List<ChatUserGroup> userGroups = userGroupsLiveData.getValue();
-
-        if (userGroups == null) {
-            throw new RuntimeException("userGroups is null");
+        if (recipients != null) {
+            recipients.addRecipient(msgId);
+        } else {
+            this.recipients = new ChatMessageRecipients(Arrays.asList(msgId));
         }
 
-        List<ChatMessageRecipient> messageRecipients = new ArrayList<>();
-        for (ChatUserGroup userGroup : userGroups) {
-            String recipientId = chatDB.getNewKey(chatDB.getMessageRecipientsEndpoint());
-            ChatMessageRecipient messageRecipient = new ChatMessageRecipient(
-                    recipientId, msg.getUser().getId(), userGroup.getId(), msg.getId());
-            messageRecipients.add(messageRecipient);
-        }
-
-        for (ChatMessageRecipient messageRecipient : messageRecipients) {
-            chatDB
-                    .insertValue(chatDB.getMessageRecipientsEndpoint(), messageRecipient.getId(), messageRecipient);
-        }
+        chatDB
+                .getMessageRecipientsEndpoint()
+                .child(currentGroupId)
+                .setValue(recipients);
 
         chatDB
                 .insertValue(chatDB.getMessagesEndpoint(), msg.getId(), msg)
@@ -129,64 +116,40 @@ public class ChatMessagesFragmentViewModel extends BaseViewModel {
                 });
     }
 
-    public void getUserGroups(ChatGroup currentGroup) {
-        chatDB
-                .getUserGroupsEndpoint()
-                .get()
-                .addOnSuccessListener(snapshot -> {
-                    List<ChatUserGroup> groups = new ArrayList<>();
-                    for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
-                        ChatUserGroup group = dataSnapshot.getValue(ChatUserGroup.class);
-                        if (group != null && group.getGroupId().equals(currentGroup.getId())) {
-                            groups.add(group);
-                        }
-                    }
-                    _userGroupsLiveData.postValue(groups);
-                });
-    }
-
-    public void getMessages() {
+    public void getMessages(ChatMessageRecipients chatMessageRecipients) {
         chatDB
                 .getMessagesEndpoint()
                 .get()
                 .addOnSuccessListener(snapshot -> {
-                    List<ChatMessage> messages = new ArrayList<>();
-                    List<ChatMessageRecipient> recipients = messageRecipientsLiveData.getValue();
+                    List<String> messagesIds = chatMessageRecipients.getMessageIds();
+                    List<ChatMessage> chatMessages = new ArrayList<>();
 
-                    for (ChatMessageRecipient recipient : recipients) {
-                        DataSnapshot dataSnapshot = snapshot.child(recipient.getMessageId());
-                        ChatMessage message = dataSnapshot.getValue(ChatMessage.class);
-                        messages.add(message);
+                    for (String messageId : messagesIds) {
+                        ChatMessage chatMessage = snapshot.child(messageId).getValue(ChatMessage.class);
+                        chatMessages.add(chatMessage);
                     }
-                    _messagesLiveData.postValue(messages);
+
+                    _messagesLiveData.postValue(chatMessages);
                 });
     }
 
-    public void listenForMessagesUpdates(ChatUser currentChatUser) {
-        ChatUserGroup currentUserGroup = userGroupsLiveData.getValue()
-                .stream()
-                .filter(chatUserGroup -> chatUserGroup.getUserId().equals(currentChatUser.getId()))
-                .findFirst()
-                .get();
-
+    public void listenForMessagesUpdates(ChatGroup currentGroup) {
         chatDB
                 .getMessageRecipientsEndpoint()
+                .child(currentGroup.getId())
                 .addValueEventListener(new ValueEventListener() {
                     @Override
-                    public void onDataChange(@NonNull @NotNull DataSnapshot snapshot) {
-                        List<ChatMessageRecipient> recipients = new ArrayList<>();
-                        for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
-                            ChatMessageRecipient recipient = dataSnapshot.getValue(ChatMessageRecipient.class);
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        ChatMessageRecipients recipients = snapshot.getValue(ChatMessageRecipients.class);
 
-                            if (recipient.getRecipientGroupId().equals(currentUserGroup.getId())) {
-                                recipients.add(recipient);
-                            }
+                        if (recipients != null) {
+                            setRecipients(recipients);
+                            getMessages(recipients);
                         }
-                        _messageRecipientsLiveData.postValue(recipients);
                     }
 
                     @Override
-                    public void onCancelled(@NonNull @NotNull DatabaseError error) {
+                    public void onCancelled(@NonNull DatabaseError error) {
 
                     }
                 });
@@ -226,4 +189,7 @@ public class ChatMessagesFragmentViewModel extends BaseViewModel {
         this._currentGroupLiveData.postValue(currentGroup);
     }
 
+    public void setRecipients(ChatMessageRecipients recipients) {
+        this.recipients = recipients;
+    }
 }
