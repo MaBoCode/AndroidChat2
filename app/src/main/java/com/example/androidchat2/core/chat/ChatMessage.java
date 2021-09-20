@@ -1,28 +1,42 @@
 package com.example.androidchat2.core.chat;
 
+import androidx.annotation.Nullable;
+
 import com.stfalcon.chatkit.commons.models.IMessage;
 import com.stfalcon.chatkit.commons.models.IUser;
+import com.stfalcon.chatkit.commons.models.MessageContentType;
 
 import java.io.Serializable;
 import java.util.Date;
 
-public class ChatMessage implements IMessage, Serializable {
+public class ChatMessage implements IMessage, MessageContentType.Image, Serializable {
 
     private String id;
     private String text;
     private ChatUser user;
     private Date createdAt;
     private String toGroupId;
+    private String imageUrl;
 
     public ChatMessage() {
     }
 
-    public ChatMessage(String id, String text, ChatUser user, Date createdAt, String toGroupId) {
+    public ChatMessage(String id, String text, ChatUser user, Date createdAt, String toGroupId, String imageUrl) {
         this.id = id;
         this.text = text;
         this.user = user;
         this.createdAt = createdAt;
         this.toGroupId = toGroupId;
+        this.imageUrl = imageUrl;
+    }
+
+    public ChatMessage(ChatMessage message) {
+        this.id = message.getId();
+        this.text = message.getText();
+        this.user = (ChatUser) message.getUser();
+        this.createdAt = message.getCreatedAt();
+        this.toGroupId = message.getToGroupId();
+        this.imageUrl = message.getImageUrl();
     }
 
     @Override
@@ -50,6 +64,12 @@ public class ChatMessage implements IMessage, Serializable {
         return toGroupId;
     }
 
+    @Nullable
+    @Override
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
     public void setId(String id) {
         this.id = id;
     }
@@ -71,6 +91,10 @@ public class ChatMessage implements IMessage, Serializable {
         this.toGroupId = toGroupId;
     }
 
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
+
     @Override
     public String toString() {
         return "ChatMessage{" +
@@ -79,6 +103,7 @@ public class ChatMessage implements IMessage, Serializable {
                 ", user=" + user +
                 ", createdAt=" + createdAt +
                 ", toGroupId='" + toGroupId + '\'' +
+                ", imageUrl='" + imageUrl + '\'' +
                 '}';
     }
 }
