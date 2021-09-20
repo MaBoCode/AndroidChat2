@@ -68,7 +68,7 @@ public class MessagingService extends FirebaseMessagingService {
 
     public NotificationChannelCompat getNewMessageNotificationChannel() {
         if (newMessageChannel == null) {
-            String channelId = getString(R.string.new_message_notification_channel_id);
+            String channelId = getString(R.string.chat_message_notification_channel);
             Uri defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
             AudioAttributes audioAttributes = new AudioAttributes.Builder()
                     .setUsage(AudioAttributes.USAGE_NOTIFICATION)
