@@ -100,6 +100,15 @@ public class MainActivityViewModel extends BaseViewModel {
 
     }
 
+    public ChatUser unwrapCurrentChatUser() {
+
+        if (currentChatUser.getValue() == null) {
+            throw new RuntimeException("CurrentChatUser is null");
+        }
+
+        return currentChatUser.getValue();
+    }
+
     public FirebaseUser getCurrentFirebaseUser() {
         return getFirebaseAuth().getCurrentUser();
     }

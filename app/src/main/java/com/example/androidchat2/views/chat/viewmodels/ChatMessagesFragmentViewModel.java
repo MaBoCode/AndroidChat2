@@ -1,6 +1,11 @@
 package com.example.androidchat2.views.chat.viewmodels;
 
+import android.content.Context;
+import android.util.Patterns;
+import android.webkit.MimeTypeMap;
+
 import androidx.annotation.NonNull;
+import androidx.core.app.NotificationManagerCompat;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.SavedStateHandle;
@@ -13,6 +18,7 @@ import com.example.androidchat2.core.firebase.ChatRealTimeDatabase;
 import com.example.androidchat2.injects.base.BaseViewModel;
 import com.example.androidchat2.utils.Logs;
 import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.ValueEventListener;
@@ -23,7 +29,9 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.inject.Inject;
 
@@ -46,8 +54,6 @@ public class ChatMessagesFragmentViewModel extends BaseViewModel {
     protected MutableLiveData<List<ChatUser>> _groupChatUsers = new MutableLiveData<>();
     public LiveData<List<ChatUser>> groupChatUsers = _groupChatUsers;
 
-    protected MutableLiveData<ChatMessage> _sentMessageLiveData = new MutableLiveData<>();
-
     protected MutableLiveData<List<ChatMessage>> _messagesLiveData = new MutableLiveData<>();
     public LiveData<List<ChatMessage>> messagesLiveData = _messagesLiveData;
 
@@ -61,7 +67,22 @@ public class ChatMessagesFragmentViewModel extends BaseViewModel {
 
         Date currentDate = new Date();
         String currentGroupId = currentGroup.getId();
-        ChatMessage msg = new ChatMessage(msgId, value, currentChatUser, currentDate, currentGroupId);
+        ChatMessage msg = new ChatMessage(msgId, value, currentChatUser, currentDate, currentGroupId, null);
+
+        if (Patterns.WEB_URL.matcher(value).matches()) {
+            Set<String> imageExtensions = new HashSet<>();
+            imageExtensions.add("gif");
+            imageExtensions.add("jpg");
+            imageExtensions.add("jpeg");
+            imageExtensions.add("png");
+
+            String extension = MimeTypeMap.getFileExtensionFromUrl(value);
+
+            if (imageExtensions.contains(extension)) {
+                msg.setText(null);
+                msg.setImageUrl(value);
+            }
+        }
 
         if (recipients != null) {
             recipients.addRecipient(msgId);
@@ -77,27 +98,57 @@ public class ChatMessagesFragmentViewModel extends BaseViewModel {
         chatDB
                 .getUserGroupsEndpoint()
                 .get()
-                .addOnSuccessListener(dataSnapshot -> {
+                .addOnSuccessListener(userGroupsSnapshot -> {
                     for (String userId : currentGroup.getUserIds()) {
 
                         if (userId.contentEquals(currentChatUser.getId())) {
                             continue;
                         }
 
-                        DataSnapshot userSnapshot = dataSnapshot.child(userId);
-                        Long unreadCount = (Long) userSnapshot.child(currentGroupId).getValue();
+                        isUserLooking(currentGroup, userId)
+                                .addOnSuccessListener(isLookingSnapshot -> {
+                                    Boolean isLooking = (Boolean) isLookingSnapshot.getValue();
 
-                        chatDB
-                                .updateValue(userSnapshot.getRef(), currentGroupId, unreadCount + 1);
+                                    if (isLooking == null) {
+                                        throw new RuntimeException("isLooking is null");
+                                    }
+
+                                    if (!isLooking) {
+                                        DataSnapshot userSnapshot = userGroupsSnapshot.child(userId);
+                                        Long unreadCount = (Long) userSnapshot.child(currentGroupId).getValue();
+
+                                        if (unreadCount == null) {
+                                            throw new RuntimeException("UnreadCount is null");
+                                        }
+
+                                        chatDB
+                                                .updateValue(userSnapshot.getRef(), currentGroupId, unreadCount + 1);
+                                    }
+                                });
+
                     }
                 });
 
         chatDB
                 .insertValue(chatDB.getMessagesEndpoint(), msg.getId(), msg)
                 .addOnSuccessListener(unused -> {
-                    _sentMessageLiveData.postValue(msg);
+
+                    if (msg.getImageUrl() != null) {
+                        String text = String.format("%s sent an image", currentChatUser.getName());
+                        msg.setText(text);
+                    }
+
                     setDialogLastMessage(currentGroup, msg);
                 });
+    }
+
+    public Task<DataSnapshot> isUserLooking(ChatGroup currentGroup, String userId) {
+        return chatDB
+                .getGroupsEndpoint()
+                .child(currentGroup.getId())
+                .child("isLooking")
+                .child(userId)
+                .get();
     }
 
     public void getGroupById(String groupId) {
@@ -187,19 +238,13 @@ public class ChatMessagesFragmentViewModel extends BaseViewModel {
                 });
     }
 
-    public void setIsLooking(ChatGroup currentGroup, ChatUser currentChatUser, boolean isLooking) {
-        chatDB
+    public Task<Void> setIsLooking(ChatGroup currentGroup, ChatUser currentChatUser, boolean isLooking) {
+        return chatDB
                 .getGroupsEndpoint()
                 .child(currentGroup.getId())
                 .child("isLooking")
                 .child(currentChatUser.getId())
-                .setValue(isLooking)
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Logs.error(this, e.getMessage());
-                    }
-                });
+                .setValue(isLooking);
 
     }
 
@@ -215,6 +260,11 @@ public class ChatMessagesFragmentViewModel extends BaseViewModel {
                         Logs.error(this, e.getMessage());
                     }
                 });
+    }
+
+    public void cancelNotifications(Context appContext) {
+        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(appContext);
+        notificationManager.cancel(0);
     }
 
     public void setCurrentGroup(ChatGroup currentGroup) {

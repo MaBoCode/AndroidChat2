@@ -24,6 +24,7 @@ import com.example.androidchat2.views.chat.utils.ChatImageLoader;
 import com.example.androidchat2.views.chat.viewmodels.ChatMessagesFragmentViewModel;
 import com.example.androidchat2.views.utils.ViewUtils;
 import com.google.android.material.appbar.MaterialToolbar;
+import com.stfalcon.chatkit.commons.ImageLoader;
 import com.stfalcon.chatkit.commons.models.IUser;
 import com.stfalcon.chatkit.messages.MessageHolders;
 import com.stfalcon.chatkit.messages.MessagesListAdapter;
@@ -51,7 +52,7 @@ public class ChatMessagesFragment extends BaseFragment {
         public void onClick(View view) {
             String messageContent = binding.msgInput.getEditText().getText().toString();
             if (!messageContent.isEmpty()) {
-                ChatUser currentChatUser = mainViewModel.currentChatUser.getValue();
+                ChatUser currentChatUser = mainViewModel.unwrapCurrentChatUser();
                 ChatGroup currentGroup = messagesViewModel.currentGroupLiveData.getValue();
                 messagesViewModel.sendMessage(currentChatUser, currentGroup, messageContent);
                 binding.msgInput.getEditText().getText().clear();
@@ -99,6 +100,8 @@ public class ChatMessagesFragment extends BaseFragment {
 
         binding = FrgChatMessagesBinding.inflate(inflater, container, false);
 
+        messagesViewModel.cancelNotifications(requireContext());
+
         setupMsgInput();
 
         retrieveData();
@@ -131,10 +134,19 @@ public class ChatMessagesFragment extends BaseFragment {
                 throw new NullPointerException("currentChatUser shouldn't be null.");
             }
 
+            updateUnreadCount(currentChatUser, chatGroup);
             setupMessagesAdapter(currentChatUser);
             messagesViewModel.setCurrentGroup(chatGroup);
             messagesViewModel.getUsersFromIds(chatGroup.getUserIds());
             messagesViewModel.listenForMessagesUpdates(chatGroup);
+        }
+    }
+
+    public void updateUnreadCount(ChatUser currentUser, ChatGroup currentGroup) {
+
+        if (currentGroup.getUnreadCount() > 0) {
+            currentGroup.setUnreadCount(0);
+            messagesViewModel.setGroupUnreadCount(currentUser, currentGroup, 0);
         }
     }
 
@@ -170,7 +182,8 @@ public class ChatMessagesFragment extends BaseFragment {
                 .setIncomingTextLayout(R.layout.view_incoming_txt_msg)
                 .setOutcomingTextLayout(R.layout.view_outcoming_txt_msg);
 
-        messagesListAdapter = new MessagesListAdapter<>(senderId, holders, new ChatImageLoader(requireContext()));
+        ImageLoader imageLoader = new ChatImageLoader(requireContext());
+        messagesListAdapter = new MessagesListAdapter<>(senderId, holders, imageLoader);
         binding.chatMessagesLst.setAdapter(messagesListAdapter);
     }
 
@@ -195,15 +208,13 @@ public class ChatMessagesFragment extends BaseFragment {
         mainViewModel.currentChatUser.observe(getViewLifecycleOwner(), this::setupMessagesAdapter);
 
         messagesViewModel.currentGroupLiveData.observe(getViewLifecycleOwner(), chatGroup -> {
-
-            if (chatGroup.getUnreadCount() > 0) {
-                chatGroup.setUnreadCount(0);
-                messagesViewModel.setGroupUnreadCount(mainViewModel.currentChatUser.getValue(), chatGroup, 0);
-            }
+            ChatUser currentUser = mainViewModel.unwrapCurrentChatUser();
+            messagesViewModel
+                    .setIsLooking(chatGroup, currentUser, true)
+                    .addOnCompleteListener(task -> updateUnreadCount(currentUser, chatGroup));
 
             messagesViewModel.listenForMessagesUpdates(chatGroup);
             messagesViewModel.getUsersFromIds(chatGroup.getUserIds());
-            messagesViewModel.setIsLooking(chatGroup, mainViewModel.currentChatUser.getValue(), true);
         });
 
         messagesViewModel.groupChatUsers.observe(getViewLifecycleOwner(), chatUsers -> {
@@ -225,7 +236,8 @@ public class ChatMessagesFragment extends BaseFragment {
 
         ChatGroup currentGroup = messagesViewModel.currentGroupLiveData.getValue();
         if (currentGroup != null) {
-            messagesViewModel.setIsLooking(currentGroup, mainViewModel.currentChatUser.getValue(), true);
+            ChatUser currentUser = mainViewModel.unwrapCurrentChatUser();
+            messagesViewModel.setIsLooking(currentGroup, currentUser, true);
         }
 
     }
@@ -234,7 +246,11 @@ public class ChatMessagesFragment extends BaseFragment {
     public void onPause() {
 
         ChatGroup currentGroup = messagesViewModel.currentGroupLiveData.getValue();
-        messagesViewModel.setIsLooking(currentGroup, mainViewModel.currentChatUser.getValue(), false);
+        ChatUser currentUser = mainViewModel.unwrapCurrentChatUser();
+
+        if (currentGroup != null && currentUser != null) {
+            messagesViewModel.setIsLooking(currentGroup, currentUser, false);
+        }
 
         super.onPause();
     }
