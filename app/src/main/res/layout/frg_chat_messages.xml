@@ -27,6 +27,7 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:paddingBottom="12dp"
+        app:textAutoLink="all"
         app:incomingBubblePaddingTop="@dimen/padding_vertical_chat_bubble"
         app:incomingBubblePaddingLeft="@dimen/padding_horizontal_chat_bubble"
         app:incomingBubblePaddingRight="@dimen/padding_horizontal_chat_bubble"
