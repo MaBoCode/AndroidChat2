@@ -97,12 +97,16 @@ public class ChatDialogsFragment extends BaseFragment implements DialogsListAdap
     @Override
     public void subscribeObservers() {
 
-        dialogsViewModel.groupsLiveData.observe(getViewLifecycleOwner(), this::displayDialogs);
+        dialogsViewModel.groupsLiveData.observe(getViewLifecycleOwner(), chatGroups -> {
+            displayDialogs(chatGroups);
+        });
 
-        addDialogViewModel.createdGroupLiveData.observe(getViewLifecycleOwner(), chatGroup -> dialogsAdapter.addItem(chatGroup));
+        addDialogViewModel.createdGroupLiveData.observe(getViewLifecycleOwner(), chatGroup -> {
+            dialogsAdapter.addItem(chatGroup);
+        });
 
         dialogsViewModel.groupToUpdateLiveData.observe(getViewLifecycleOwner(), chatGroup -> {
-
+            dialogsAdapter.updateDialogWithMessage(chatGroup.getId(), chatGroup.getLastMsg());
         });
     }
 

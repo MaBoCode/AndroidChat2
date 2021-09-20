@@ -74,7 +74,8 @@ public class AddChatDialogFragmentViewModel extends BaseViewModel {
             chatDB
                     .getUserGroupsEndpoint()
                     .child(user.getId())
-                    .setValue(userGroups)
+                    .child(groupId)
+                    .setValue(0)
                     .addOnFailureListener(e -> _errorLiveData.postValue(dialogErrorStatus));
         }
 

@@ -117,6 +117,7 @@ public class ChatMessagesFragment extends BaseFragment {
         ChatGroup chatGroup = ChatMessagesFragment_Args.fromBundle(getArguments()).getChatGroup();
 
         if (chatGroup == null) {
+            // Deep-linking (notifications)
             Bundle arguments = getArguments();
             String groupId = arguments.getString("group_id");
 
@@ -194,6 +195,12 @@ public class ChatMessagesFragment extends BaseFragment {
         mainViewModel.currentChatUser.observe(getViewLifecycleOwner(), this::setupMessagesAdapter);
 
         messagesViewModel.currentGroupLiveData.observe(getViewLifecycleOwner(), chatGroup -> {
+
+            if (chatGroup.getUnreadCount() > 0) {
+                chatGroup.setUnreadCount(0);
+                messagesViewModel.setGroupUnreadCount(mainViewModel.currentChatUser.getValue(), chatGroup, 0);
+            }
+
             messagesViewModel.listenForMessagesUpdates(chatGroup);
             messagesViewModel.getUsersFromIds(chatGroup.getUserIds());
             messagesViewModel.setIsLooking(chatGroup, mainViewModel.currentChatUser.getValue(), true);

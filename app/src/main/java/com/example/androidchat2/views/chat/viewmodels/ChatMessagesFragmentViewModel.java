@@ -75,6 +75,24 @@ public class ChatMessagesFragmentViewModel extends BaseViewModel {
                 .setValue(recipients);
 
         chatDB
+                .getUserGroupsEndpoint()
+                .get()
+                .addOnSuccessListener(dataSnapshot -> {
+                    for (String userId : currentGroup.getUserIds()) {
+
+                        if (userId.contentEquals(currentChatUser.getId())) {
+                            continue;
+                        }
+
+                        DataSnapshot userSnapshot = dataSnapshot.child(userId);
+                        Long unreadCount = (Long) userSnapshot.child(currentGroupId).getValue();
+
+                        chatDB
+                                .updateValue(userSnapshot.getRef(), currentGroupId, unreadCount + 1);
+                    }
+                });
+
+        chatDB
                 .insertValue(chatDB.getMessagesEndpoint(), msg.getId(), msg)
                 .addOnSuccessListener(unused -> {
                     _sentMessageLiveData.postValue(msg);
@@ -183,6 +201,20 @@ public class ChatMessagesFragmentViewModel extends BaseViewModel {
                     }
                 });
 
+    }
+
+    public void setGroupUnreadCount(ChatUser currentUser, ChatGroup currentGroup, int unreadCount) {
+        chatDB
+                .getUserGroupsEndpoint()
+                .child(currentUser.getId())
+                .child(currentGroup.getId())
+                .setValue(unreadCount)
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Logs.error(this, e.getMessage());
+                    }
+                });
     }
 
     public void setCurrentGroup(ChatGroup currentGroup) {

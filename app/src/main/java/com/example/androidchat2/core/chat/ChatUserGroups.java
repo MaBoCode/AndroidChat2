@@ -1,35 +1,33 @@
 package com.example.androidchat2.core.chat;
 
 import java.io.Serializable;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class ChatUserGroups implements Serializable {
 
-    private List<String> groupIds;
+    private Map<String, Integer> groups;
 
     public ChatUserGroups() {
     }
 
     public ChatUserGroups(List<String> groupIds) {
-        this.groupIds = groupIds;
+        this.groups = new HashMap<>();
+        for (String groupId : groupIds) {
+            this.groups.put(groupId, 0);
+        }
+    }
+
+    public ChatUserGroups(Map<String, Integer> groups) {
+        this.groups = groups;
     }
 
     public void addGroup(String groupId) {
-        groupIds.add(groupId);
+        this.groups.put(groupId, 0);
     }
 
-    public List<String> getGroupIds() {
-        return groupIds;
-    }
-
-    public void setGroupIds(List<String> groupIds) {
-        this.groupIds = groupIds;
-    }
-
-    @Override
-    public String toString() {
-        return "ChatUserGroup{" +
-                "groupIds=" + groupIds +
-                '}';
+    public Map<String, Integer> getGroups() {
+        return groups;
     }
 }

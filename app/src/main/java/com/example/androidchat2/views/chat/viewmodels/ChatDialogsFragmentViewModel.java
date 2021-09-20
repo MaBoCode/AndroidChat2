@@ -15,7 +15,9 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.inject.Inject;
 
@@ -45,9 +47,16 @@ public class ChatDialogsFragmentViewModel extends BaseViewModel {
                 .addOnSuccessListener(snapshot -> {
                     List<ChatGroup> chatGroups = new ArrayList<>();
 
-                    for (String groupId : userGroups.getGroupIds()) {
+                    for (Map.Entry<String, Integer> entry : userGroups.getGroups().entrySet()) {
+                        String groupId = entry.getKey();
+                        int unreadCount = entry.getValue();
+
                         ChatGroup chatGroup = snapshot.child(groupId).getValue(ChatGroup.class);
-                        chatGroups.add(chatGroup);
+
+                        if (chatGroup != null) {
+                            chatGroup.setUnreadCount(unreadCount);
+                            chatGroups.add(chatGroup);
+                        }
                     }
 
                     _groupsLiveData.postValue(chatGroups);
@@ -61,12 +70,18 @@ public class ChatDialogsFragmentViewModel extends BaseViewModel {
                 .addValueEventListener(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
-                        ChatUserGroups userGroups = snapshot.getValue(ChatUserGroups.class);
 
-                        if (userGroups != null) {
-                            listenForGroupsUpdates(userGroups);
-                            getGroups(userGroups);
+                        Map<String, Integer> groupsMap = new HashMap<>();
+
+                        for (DataSnapshot groupSnapshot : snapshot.getChildren()) {
+                            String groupId = groupSnapshot.getKey();
+                            Long unreadCount = (Long) groupSnapshot.getValue();
+                            groupsMap.put(groupId, unreadCount.intValue());
                         }
+
+                        ChatUserGroups userGroups = new ChatUserGroups(groupsMap);
+                        listenForGroupsUpdates(userGroups);
+                        getGroups(userGroups);
                     }
 
                     @Override
@@ -74,16 +89,15 @@ public class ChatDialogsFragmentViewModel extends BaseViewModel {
 
                     }
                 });
-
     }
 
     public void listenForGroupsUpdates(ChatUserGroups userGroups) {
-        for (String groupId : userGroups.getGroupIds()) {
-            listenForGroupUpdates(groupId);
+        for (Map.Entry<String, Integer> entry : userGroups.getGroups().entrySet()) {
+            listenForGroupUpdates(entry.getKey(), entry.getValue());
         }
     }
 
-    public void listenForGroupUpdates(String groupId) {
+    public void listenForGroupUpdates(String groupId, int unreadCount) {
         chatDB
                 .getGroupsEndpoint()
                 .child(groupId)
@@ -91,7 +105,11 @@ public class ChatDialogsFragmentViewModel extends BaseViewModel {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
                         ChatGroup group = snapshot.getValue(ChatGroup.class);
-                        _groupToUpdateLiveData.postValue(group);
+
+                        if (group != null) {
+                            group.setUnreadCount(unreadCount);
+                            _groupToUpdateLiveData.postValue(group);
+                        }
                     }
 
                     @Override
