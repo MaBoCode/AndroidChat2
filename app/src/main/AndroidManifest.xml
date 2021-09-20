@@ -45,7 +45,7 @@
 
             <meta-data
                 android:name="com.google.firebase.messaging.default_notification_channel_id"
-                android:value="@string/new_message_notification_channel_id" />
+                android:value="@string/chat_message_notification_channel" />
         </service>
 
     </application>
