@@ -5,7 +5,7 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.SavedStateHandle;
 
 import com.example.androidchat2.core.chat.ChatUser;
-import com.example.androidchat2.core.firebase.ChatRealTimeDatabase;
+import com.example.androidchat2.core.firebase.databases.ChatRealTimeDatabase;
 import com.example.androidchat2.injects.base.BaseViewModel;
 import com.example.androidchat2.views.utils.rxfirebase.ErrorStatus;
 import com.example.androidchat2.views.utils.rxfirebase.RxFirebaseAuth;

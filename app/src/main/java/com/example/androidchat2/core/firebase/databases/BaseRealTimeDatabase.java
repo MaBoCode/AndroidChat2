@@ -1,4 +1,4 @@
-package com.example.androidchat2.core.firebase;
+package com.example.androidchat2.core.firebase.databases;
 
 import com.google.firebase.database.DatabaseReference;
 

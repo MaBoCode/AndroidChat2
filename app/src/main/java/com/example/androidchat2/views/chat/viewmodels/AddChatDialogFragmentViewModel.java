@@ -7,12 +7,12 @@ import androidx.lifecycle.SavedStateHandle;
 import com.example.androidchat2.core.chat.ChatGroup;
 import com.example.androidchat2.core.chat.ChatUser;
 import com.example.androidchat2.core.chat.ChatUserGroups;
-import com.example.androidchat2.core.firebase.ChatRealTimeDatabase;
+import com.example.androidchat2.core.firebase.callbacks.ChatTaskCallback;
+import com.example.androidchat2.core.firebase.databases.ChatRealTimeDatabase;
+import com.example.androidchat2.core.firebase.datasources.ChatDataSource;
+import com.example.androidchat2.core.firebase.datasources.ChatUserDataSource;
 import com.example.androidchat2.injects.base.BaseViewModel;
-import com.example.androidchat2.views.utils.rxfirebase.ErrorStatus;
-import com.google.firebase.database.DataSnapshot;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -22,6 +22,12 @@ import dagger.hilt.android.lifecycle.HiltViewModel;
 
 @HiltViewModel
 public class AddChatDialogFragmentViewModel extends BaseViewModel {
+
+    @Inject
+    protected ChatUserDataSource userDataSource;
+
+    @Inject
+    protected ChatDataSource chatDataSource;
 
     @Inject
     protected ChatRealTimeDatabase chatDB;
@@ -40,58 +46,54 @@ public class AddChatDialogFragmentViewModel extends BaseViewModel {
     }
 
     public void getUsers() {
-        chatDB.getUsersEndpoint()
-                .get()
-                .addOnSuccessListener(snapshot -> {
-                    List<ChatUser> users = new ArrayList<>();
-                    for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
-                        ChatUser user = dataSnapshot.getValue(ChatUser.class);
-                        users.add(user);
+        userDataSource
+                .getUsers(new ChatTaskCallback<List<ChatUser>>() {
+                    @Override
+                    public void onSuccess(List<ChatUser> users) {
+                        _usersLiveData.postValue(users);
                     }
-                    _usersLiveData.postValue(users);
+
+                    @Override
+                    public void onFailure(Exception e) {
+
+                    }
                 });
     }
 
     public void createNewDialog(String dialogName, List<ChatUser> users) {
-        String groupId = chatDB.getNewKey(chatDB.getGroupsEndpoint());
-
-        ErrorStatus dialogErrorStatus = new ErrorStatus("Unable to create dialog.");
-
-        if (groupId == null) {
-            _errorLiveData.postValue(dialogErrorStatus);
-            return;
-        }
-
-        ChatGroup group = new ChatGroup(groupId, dialogName, users);
+        ChatGroup group = chatDataSource.buildGroup(dialogName, users);
 
         if (userGroups == null) {
-            userGroups = new ChatUserGroups(Arrays.asList(groupId));
+            userGroups = new ChatUserGroups(Arrays.asList(group.getId()));
         } else {
-            userGroups.addGroup(groupId);
+            userGroups.addGroup(group.getId());
         }
 
         for (ChatUser user : users) {
             chatDB
                     .getUserGroupsEndpoint()
                     .child(user.getId())
-                    .child(groupId)
-                    .setValue(0)
-                    .addOnFailureListener(e -> _errorLiveData.postValue(dialogErrorStatus));
+                    .child(group.getId())
+                    .setValue(0);
         }
 
         chatDB
-                .insertValue(chatDB.getGroupsEndpoint(), groupId, group)
+                .insertValue(chatDB.getGroupsEndpoint(), group.getId(), group)
                 .addOnSuccessListener(unused -> _createdGroupLiveData.postValue(group));
     }
 
     public void getUserGroups(ChatUser currentChatUser) {
-        chatDB
-                .getUserGroupsEndpoint()
-                .child(currentChatUser.getId())
-                .get()
-                .addOnSuccessListener(dataSnapshot -> {
-                    ChatUserGroups userGroups = dataSnapshot.getValue(ChatUserGroups.class);
-                    setUserGroups(userGroups);
+        userDataSource
+                .getUserGroups(currentChatUser.getId(), new ChatTaskCallback<ChatUserGroups>() {
+                    @Override
+                    public void onSuccess(ChatUserGroups userGroups) {
+                        setUserGroups(userGroups);
+                    }
+
+                    @Override
+                    public void onFailure(Exception e) {
+
+                    }
                 });
     }
 

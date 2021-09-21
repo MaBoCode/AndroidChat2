@@ -6,7 +6,6 @@ import com.google.firebase.auth.FirebaseAuth;
 
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Observable;
-import io.reactivex.rxjava3.functions.Cancellable;
 
 public class RxFirebaseAuth {
 
@@ -26,20 +25,10 @@ public class RxFirebaseAuth {
 
     public static Observable<FirebaseAuth> observableAuthState(FirebaseAuth firebaseAuth) {
         return Observable.create(emitter -> {
-            FirebaseAuth.AuthStateListener authStateListener = new FirebaseAuth.AuthStateListener() {
-                @Override
-                public void onAuthStateChanged(@androidx.annotation.NonNull FirebaseAuth firebaseAuth1) {
-                    emitter.onNext(firebaseAuth1);
-                }
-            };
+            FirebaseAuth.AuthStateListener authStateListener = emitter::onNext;
 
             firebaseAuth.addAuthStateListener(authStateListener);
-            emitter.setCancellable(new Cancellable() {
-                @Override
-                public void cancel() throws Throwable {
-                    firebaseAuth.removeAuthStateListener(authStateListener);
-                }
-            });
+            emitter.setCancellable(() -> firebaseAuth.removeAuthStateListener(authStateListener));
         });
     }
 
